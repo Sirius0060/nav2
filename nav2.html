@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>我的导航</title>
+    <style>
+        :root {
+            --bg-color: #f5f6f8;
+            --text-color: #333;
+            
+            --modal-bg: #ffffff;
+            --modal-overlay: rgba(0, 0, 0, 0.4);
+            --input-bg: #f9f9f9;
+            --input-border: #ddd;
+            --input-focus: #4facfe;
+            --btn-primary: #4facfe;
+            --btn-primary-hover: #3a8dde;
+            --btn-secondary: #e0e0e0;
+            --btn-secondary-hover: #d0d0d0;
+            --btn-secondary-text: #333;
+            --danger-color: #ff4d4f;
+            --danger-hover: #ff7875;
+
+            --icon-size: 60px;
+            --grid-cols: 10;
+            --gap-x: 20px;
+            --gap-y: 30px;
+        }
+
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #eee;
+            
+            --modal-bg: #2d2d2d;
+            --modal-overlay: rgba(0, 0, 0, 0.6);
+            --input-bg: #1e1e1e;
+            --input-border: #444;
+            --input-focus: #5c7080;
+            --btn-primary: #5c7080;
+            --btn-primary-hover: #4a5a68;
+            --btn-secondary: #444;
+            --btn-secondary-hover: #555;
+            --btn-secondary-text: #eee;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+
+        html, body {
+            overscroll-behavior: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding-top: 8vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .header-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 40px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .header-icon:hover {
+            transform: scale(1.1) rotate(15deg);
+        }
+
+        .header-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: #5c7080;
+            transition: fill 0.3s;
+        }
+
+        body.dark-mode .header-icon svg {
+            fill: #8a9ba8;
+        }
+
+        /* 导航网格 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(var(--grid-cols), 1fr);
+            gap: var(--gap-y) var(--gap-x);
+            max-width: 1400px;
+            width: 100%;
+            padding: 0 40px;
+            justify-items: center;
+            justify-content: center;
+            margin-bottom: 100px;
+            transition: gap 0.3s;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            position: relative;
+            cursor: grab;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .nav-item:active {
+            cursor: grabbing;
+        }
+
+        .nav-item.dragging {
+            opacity: 0.4;
+            transform: scale(0.9);
+        }
+
+        /* 拖拽插入指示线 */
+        .nav-item.insert-left::before,
+        .nav-item.insert-right::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 3px;
+            height: var(--icon-size);
+            background-color: #4facfe;
+            border-radius: 2px;
+            box-shadow: 0 0 6px rgba(79, 172, 254, 0.6);
+            z-index: 20;
+        }
+
+        .nav-item.insert-left::before {
+            left: calc(var(--gap-x) / -2 - 1.5px);
+        }
+
+        .nav-item.insert-right::after {
+            right: calc(var(--gap-x) / -2 - 1.5px);
+        }
+
+        .icon-box {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s;
+            overflow: hidden;
+            border-radius: 20%;
+            position: relative;
+        }
+
+        /* 分组图标加一个文件夹角标 */
+        .icon-box.group-icon {
+            background: linear-gradient(135deg, #ffd580 0%, #ff9c3f 100%);
+            border-radius: 20%;
+        }
+
+        .icon-box.group-icon svg {
+            width: 55%;
+            height: 55%;
+            fill: #fff;
+        }
+
+        .nav-item:hover .icon-box {
+            transform: scale(1.2);
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15));
+            z-index: 10;
+        }
+
+        @media (hover: none) {
+            .nav-item:active .icon-box {
+                transform: scale(0.95);
+            }
+        }
+
+        body.dark-mode .nav-item:hover .icon-box {
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.5));
+        }
+
+        .icon-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 20%;
+            pointer-events: none;
+        }
+
+        .icon-box .default-icon {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: calc(var(--icon-size) * 0.4);
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 20%;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+
+        .nav-name {
+            margin-top: 12px;
+            font-size: 13px;
+            text-align: center;
+            max-width: calc(var(--icon-size) + 20px);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            pointer-events: none;
+        }
+
+        /* 分组图标下的数量角标 */
+        .group-count {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 20px;
+            height: 20px;
+            background: #ff4d4f;
+            color: #fff;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 5px;
+            pointer-events: none;
+            border: 2px solid var(--bg-color);
+        }
+
+        /* --- 右键菜单 --- */
+        .context-menu {
+            position: absolute;
+            background: var(--modal-bg);
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            padding: 5px 0;
+            z-index: 1000;
+            display: none;
+            min-width: 140px;
+            border: 1px solid var(--input-border);
+        }
+
+        .context-menu li {
+            list-style: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--text-color);
+            transition: background 0.2s;
+        }
+
+        .context-menu li:hover {
+            background-color: var(--input-bg);
+        }
+
+        .context-menu li:active {
+            background-color: var(--input-bg);
+        }
+
+        .context-menu li.delete {
+            color: var(--danger-color);
+        }
+
+        .context-menu li.divider {
+            height: 1px;
+            padding: 0;
+            margin: 5px 0;
+            background: var(--input-border);
+            cursor: default;
+            pointer-events: none;
+        }
+
+        /* --- 右下角悬浮操作区 --- */
+        .floating-area {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 1500;
+        }
+
+        .fab-btn {
+            width: 50px;
+            height: 50px;
+            background-color: var(--modal-bg);
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid var(--input-border);
+            position: relative;
+        }
+
+        body.dark-mode .fab-btn {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .fab-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #5c7080;
+            transition: fill 0.3s;
+        }
+
+        body.dark-mode .fab-btn svg {
+            fill: #8a9ba8;
+        }
+
+        .setting-btn:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .add-btn-fab {
+            opacity: 0;
+            transform: scale(0.5) translateY(20px);
+            pointer-events: none;
+        }
+
+        .add-group-btn-fab {
+            opacity: 0;
+            transform: scale(0.5) translateY(20px);
+            pointer-events: none;
+        }
+
+        .floating-area:hover .add-btn-fab,
+        .floating-area:hover .add-group-btn-fab {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
+
+        .add-btn-fab:hover {
+            transform: scale(1.1) !important;
+            background-color: var(--input-focus);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        .add-group-btn-fab:hover {
+            transform: scale(1.1) !important;
+            background-color: #ff9c3f;
+            box-shadow: 0 6px 20px rgba(255, 156, 63, 0.4);
+        }
+        
+        .add-btn-fab:hover svg,
+        .add-group-btn-fab:hover svg {
+            fill: #fff;
+        }
+
+        /* --- 模态框 --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--modal-overlay);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--modal-bg);
+            padding: 25px 30px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            transform: translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .form-group input[type="text"], 
+        .form-group input[type="url"],
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--input-focus);
+        }
+
+        .icon-upload-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: transparent;
+            border: 1px dashed var(--input-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .icon-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .btn-upload {
+            padding: 8px 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-color);
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-upload:hover {
+            background: rgba(128, 128, 128, 0.1);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .btn-cancel {
+            background: var(--btn-secondary);
+            color: var(--btn-secondary-text);
+        }
+        .btn-cancel:hover {
+            background: var(--btn-secondary-hover);
+        }
+
+        .btn-confirm {
+            background: var(--btn-primary);
+            color: #fff;
+        }
+        .btn-confirm:hover {
+            background: var(--btn-primary-hover);
+        }
+
+        /* 设置面板 */
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .setting-row label {
+            font-size: 14px;
+            margin-bottom: 0;
+        }
+        .setting-row input[type="range"] {
+            width: 160px;
+            cursor: pointer;
+        }
+        .setting-value {
+            font-size: 13px;
+            width: 40px;
+            text-align: right;
+            opacity: 0.7;
+        }
+
+        .data-manage-title {
+            font-size: 14px;
+            margin: 20px 0 10px 0;
+            padding-top: 15px;
+            border-top: 1px solid var(--input-border);
+            opacity: 0.8;
+        }
+        .data-manage-row {
+            display: flex;
+            gap: 10px;
+        }
+        .data-manage-row .btn {
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-color);
+            padding: 8px 0;
+        }
+        .data-manage-row .btn:hover {
+            background: rgba(128, 128, 128, 0.1);
+        }
+        .data-manage-row .btn.danger {
+            color: var(--danger-color);
+        }
+        .data-manage-row .btn.danger:hover {
+            background: rgba(255, 77, 79, 0.1);
+        }
+
+        /* --- 分组内容弹窗 --- */
+        .group-modal-content {
+            background: var(--modal-bg);
+            padding: 25px 20px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 700px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            transform: translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.show .group-modal-content {
+            transform: translateY(0);
+        }
+
+        .group-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 5px;
+        }
+
+        .group-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .group-modal-title svg {
+            width: 24px;
+            height: 24px;
+            fill: #ff9c3f;
+        }
+
+        .group-modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            background: var(--input-bg);
+        }
+
+        .group-modal-close:hover {
+            background: var(--btn-secondary-hover);
+        }
+
+        .group-modal-close svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--text-color);
+        }
+
+        /* 分组内网格 */
+        .group-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 25px 15px;
+            justify-items: center;
+            padding: 10px 5px;
+        }
+
+        .group-empty {
+            text-align: center;
+            padding: 40px 0;
+            opacity: 0.6;
+            font-size: 14px;
+        }
+
+        /* ============================================
+           移动端适配
+           ============================================ */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 5vh;
+            }
+
+            .header-icon {
+                width: 60px;
+                height: 60px;
+                margin-bottom: 25px;
+            }
+
+            .grid-container {
+                grid-template-columns: repeat(5, 1fr) !important;
+                padding: 0 15px;
+                gap: 20px 10px;
+                margin-bottom: 100px;
+            }
+
+            .icon-box {
+                width: 48px !important;
+                height: 48px !important;
+            }
+
+            .nav-name {
+                font-size: 11px;
+                margin-top: 8px;
+                max-width: 60px;
+            }
+
+            .floating-area {
+                bottom: 25px;
+                right: 20px;
+                gap: 12px;
+            }
+
+            .fab-btn {
+                width: 44px;
+                height: 44px;
+            }
+
+            .fab-btn svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .add-btn-fab,
+            .add-group-btn-fab {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                pointer-events: auto;
+            }
+
+            .modal-content {
+                padding: 20px;
+                border-radius: 14px;
+            }
+
+            .modal-title {
+                font-size: 16px;
+                margin-bottom: 15px;
+            }
+
+            .setting-row input[type="range"] {
+                width: 120px;
+            }
+
+            .group-modal-content {
+                padding: 20px 15px;
+                border-radius: 14px;
+            }
+
+            .group-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 20px 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .grid-container {
+                grid-template-columns: repeat(4, 1fr) !important;
+                padding: 0 10px;
+                gap: 18px 8px;
+            }
+
+            .icon-box {
+                width: 44px !important;
+                height: 44px !important;
+            }
+
+            .nav-name {
+                font-size: 10px;
+            }
+
+            .group-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-icon" id="themeToggle" title="切换深浅色模式">
+        <svg viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>
+    </div>
+
+    <div class="grid-container" id="navGrid"></div>
+
+    <div class="floating-area">
+        <div class="fab-btn add-group-btn-fab" id="btnAddGroup" title="新建分组">
+            <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 8h-3v3h-2v-3h-3v-2h3V9h2v3h3v2z"/></svg>
+        </div>
+        <div class="fab-btn add-btn-fab" id="btnAdd" title="添加新网址">
+            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        </div>
+        <div class="fab-btn setting-btn" id="settingToggle" title="界面设置与数据管理">
+            <svg viewBox="0 0 24 24">
+                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+            </svg>
+        </div>
+    </div>
+
+    <ul class="context-menu" id="contextMenu">
+        <li id="topMenu">📌 置顶</li>
+        <li id="editMenu">✏️ 编辑</li>
+        <li id="deleteMenu" class="delete">🗑️ 删除</li>
+    </ul>
+
+    <!-- 1. 添加/编辑网址弹窗 -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">添加新网址</div>
+            
+            <div class="form-group">
+                <label>网站名称</label>
+                <input type="text" id="inputName" placeholder="例如：百度" autocomplete="off">
+            </div>
+            
+            <div class="form-group">
+                <label>网站链接</label>
+                <input type="url" id="inputUrl" placeholder="例如：https://www.baidu.com" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label>所属分组 (可选)</label>
+                <select id="inputGroup">
+                    <option value="">-- 不分组 --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>图标设置 (可选)</label>
+                <div class="icon-upload-row">
+                    <div class="icon-preview" id="iconPreview">
+                        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:var(--input-border);"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                    </div>
+                    <input type="text" id="inputIconUrl" placeholder="输入图片URL" style="flex:1;">
+                    <label class="btn-upload" for="fileUpload">本地图片</label>
+                    <input type="file" id="fileUpload" accept="image/*">
+                </div>
+                <div style="font-size: 12px; opacity: 0.6; margin-top: 5px;">留空则自动获取网站图标</div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-cancel" id="btnCancel">取消</button>
+                <button class="btn btn-confirm" id="btnConfirm">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 添加/编辑分组弹窗 -->
+    <div class="modal-overlay" id="groupModal">
+        <div class="modal-content">
+            <div class="modal-title" id="groupModalTitle">新建分组</div>
+            
+            <div class="form-group">
+                <label>分组名称</label>
+                <input type="text" id="groupInputName" placeholder="例如：社交、工具" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label>分组图标 (可选)</label>
+                <div class="icon-upload-row">
+                    <div class="icon-preview" id="groupIconPreview">
+                        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:var(--input-border);"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
+                    </div>
+                    <input type="text" id="groupInputIconUrl" placeholder="输入图片URL" style="flex:1;">
+                    <label class="btn-upload" for="groupFileUpload">本地图片</label>
+                    <input type="file" id="groupFileUpload" accept="image/*">
+                </div>
+                <div style="font-size: 12px; opacity: 0.6; margin-top: 5px;">留空则使用默认文件夹图标</div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-cancel" id="groupBtnCancel">取消</button>
+                <button class="btn btn-confirm" id="groupBtnConfirm">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 分组内容展示弹窗 -->
+    <div class="modal-overlay" id="groupViewModal">
+        <div class="group-modal-content">
+            <div class="group-modal-header">
+                <div class="group-modal-title">
+                    <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
+                    <span id="groupViewTitle">分组</span>
+                </div>
+                <div class="group-modal-close" id="groupViewClose">
+                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </div>
+            </div>
+            <div class="group-grid" id="groupViewGrid"></div>
+            <div class="group-empty" id="groupViewEmpty" style="display:none;">该分组暂无网址</div>
+        </div>
+    </div>
+
+    <!-- 4. 设置弹窗 -->
+    <div class="modal-overlay" id="settingModal">
+        <div class="modal-content">
+            <div class="modal-title">设置与数据</div>
+            
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>排序方式</label>
+                <select id="setSort">
+                    <option value="manual">手动排序（可拖拽）</option>
+                    <option value="frequency">按使用频率</option>
+                    <option value="alphabetical">按名称字母</option>
+                </select>
+            </div>
+
+            <div class="setting-row">
+                <label>每行列数</label>
+                <input type="range" id="setCols" min="4" max="15" step="1">
+                <div class="setting-value" id="valCols">10</div>
+            </div>
+
+            <div class="setting-row">
+                <label>图标大小</label>
+                <input type="range" id="setIconSize" min="30" max="100" step="5">
+                <div class="setting-value" id="valIconSize">60</div>
+            </div>
+
+            <div class="setting-row">
+                <label>水平间距</label>
+                <input type="range" id="setGapX" min="0" max="100" step="5">
+                <div class="setting-value" id="valGapX">20</div>
+            </div>
+
+            <div class="setting-row">
+                <label>垂直间距</label>
+                <input type="range" id="setGapY" min="10" max="100" step="5">
+                <div class="setting-value" id="valGapY">30</div>
+            </div>
+
+            <div class="data-manage-title">数据备份与恢复</div>
+            <div class="data-manage-row">
+                <button class="btn" id="btnExport">导出备份</button>
+                <button class="btn" id="btnImport">导入恢复</button>
+                <button class="btn danger" id="btnClear">清空数据</button>
+            </div>
+            <input type="file" id="importFile" accept=".json">
+
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button class="btn btn-confirm" id="btnCloseSetting" style="width: 100%;">完成</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent) || ('ontouchstart' in window && window.innerWidth <= 1024);
+
+        const defaultData = [
+            { name: '百度', url: 'https://www.baidu.com', count: 0, group: null },
+            { name: '淘宝', url: 'https://www.taobao.com', count: 0, group: null },
+            { name: '知乎', url: 'https://www.zhihu.com', count: 0, group: null },
+            { name: 'B站', url: 'https://www.bilibili.com', count: 0, group: null },
+            { name: 'GitHub', url: 'https://github.com', count: 0, group: null },
+            { name: '微博', url: 'https://weibo.com', count: 0, group: null }
+        ];
+
+        const defaultGroups = [
+            // { id: 'g1', name: '社交', iconUrl: '', iconBase64: '' }
+        ];
+
+        const defaultSettings = {
+            cols: 10,
+            iconSize: 60,
+            gapX: 20,
+            gapY: 30,
+            sortType: 'manual'
+        };
+
+        let navData = [];
+        let groupData = [];
+        let currentSettings = {};
+        let editingIndex = -1;         // 当前编辑的网址索引
+        let editingGroupIndex = -1;    // 当前编辑的分组索引
+        let currentViewGroupId = null; // 当前查看的分组ID
+        let tempIconBase64 = ''; 
+        let tempGroupIconBase64 = '';
+        let draggedItemIndex = null;
+        let contextTargetType = 'site'; // 'site' 或 'group'
+
+        // DOM
+        const navGrid = document.getElementById('navGrid');
+        const themeToggle = document.getElementById('themeToggle');
+        const settingToggle = document.getElementById('settingToggle');
+        const btnAdd = document.getElementById('btnAdd');
+        const btnAddGroup = document.getElementById('btnAddGroup');
+        
+        const contextMenu = document.getElementById('contextMenu');
+        const editMenu = document.getElementById('editMenu');
+        const deleteMenu = document.getElementById('deleteMenu');
+        const topMenu = document.getElementById('topMenu');
+        
+        // 网址编辑弹窗
+        const editModal = document.getElementById('editModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const inputName = document.getElementById('inputName');
+        const inputUrl = document.getElementById('inputUrl');
+        const inputGroup = document.getElementById('inputGroup');
+        const inputIconUrl = document.getElementById('inputIconUrl');
+        const fileUpload = document.getElementById('fileUpload');
+        const iconPreview = document.getElementById('iconPreview');
+        const btnCancel = document.getElementById('btnCancel');
+        const btnConfirm = document.getElementById('btnConfirm');
+
+        // 分组编辑弹窗
+        const groupModal = document.getElementById('groupModal');
+        const groupModalTitle = document.getElementById('groupModalTitle');
+        const groupInputName = document.getElementById('groupInputName');
+        const groupInputIconUrl = document.getElementById('groupInputIconUrl');
+        const groupFileUpload = document.getElementById('groupFileUpload');
+        const groupIconPreview = document.getElementById('groupIconPreview');
+        const groupBtnCancel = document.getElementById('groupBtnCancel');
+        const groupBtnConfirm = document.getElementById('groupBtnConfirm');
+
+        // 分组查看弹窗
+        const groupViewModal = document.getElementById('groupViewModal');
+        const groupViewTitle = document.getElementById('groupViewTitle');
+        const groupViewGrid = document.getElementById('groupViewGrid');
+        const groupViewClose = document.getElementById('groupViewClose');
+        const groupViewEmpty = document.getElementById('groupViewEmpty');
+
+        // 设置
+        const settingModal = document.getElementById('settingModal');
+        const setSort = document.getElementById('setSort');
+        const setCols = document.getElementById('setCols');
+        const setIconSize = document.getElementById('setIconSize');
+        const setGapX = document.getElementById('setGapX');
+        const setGapY = document.getElementById('setGapY');
+        const btnCloseSetting = document.getElementById('btnCloseSetting');
+        
+        const btnExport = document.getElementById('btnExport');
+        const btnImport = document.getElementById('btnImport');
+        const btnClear = document.getElementById('btnClear');
+        const importFile = document.getElementById('importFile');
+
+        function init() {
+            const storedData = localStorage.getItem('myNavData');
+            navData = storedData ? JSON.parse(storedData) : [...defaultData];
+            navData.forEach(item => { 
+                if (typeof item.count === 'undefined') item.count = 0; 
+                if (typeof item.group === 'undefined') item.group = null;
+            });
+
+            const storedGroups = localStorage.getItem('myGroupData');
+            groupData = storedGroups ? JSON.parse(storedGroups) : [...defaultGroups];
+
+            const storedSettings = localStorage.getItem('myNavSettings');
+            currentSettings = storedSettings ? { ...defaultSettings, ...JSON.parse(storedSettings) } : { ...defaultSettings };
+
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+
+            applySettings();
+            updateSettingUI();
+            renderGrid();
+        }
+
+        function saveData() {
+            localStorage.setItem('myNavData', JSON.stringify(navData));
+            localStorage.setItem('myGroupData', JSON.stringify(groupData));
+        }
+
+        function saveSettings() {
+            localStorage.setItem('myNavSettings', JSON.stringify(currentSettings));
+        }
+
+        function applySettings() {
+            if (!isMobile) {
+                const root = document.documentElement;
+                root.style.setProperty('--grid-cols', currentSettings.cols);
+                root.style.setProperty('--icon-size', currentSettings.iconSize + 'px');
+                root.style.setProperty('--gap-x', currentSettings.gapX + 'px');
+                root.style.setProperty('--gap-y', currentSettings.gapY + 'px');
+            }
+            saveSettings();
+        }
+
+        function updateSettingUI() {
+            setSort.value = currentSettings.sortType;
+            setCols.value = currentSettings.cols;
+            document.getElementById('valCols').textContent = currentSettings.cols;
+            setIconSize.value = currentSettings.iconSize;
+            document.getElementById('valIconSize').textContent = currentSettings.iconSize;
+            setGapX.value = currentSettings.gapX;
+            document.getElementById('valGapX').textContent = currentSettings.gapX;
+            setGapY.value = currentSettings.gapY;
+            document.getElementById('valGapY').textContent = currentSettings.gapY;
+        }
+
+        function getFaviconUrl(url) {
+            try {
+                const domain = new URL(url).hostname;
+                return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+            } catch (e) {
+                return '';
+            }
+        }
+
+        // 获取未分组的网址
+        function getUngroupedData() {
+            let data = navData.filter(item => !item.group || !groupData.find(g => g.id === item.group));
+            if (currentSettings.sortType === 'frequency') {
+                data.sort((a, b) => (b.count || 0) - (a.count || 0));
+            } else if (currentSettings.sortType === 'alphabetical') {
+                data.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+            }
+            return data;
+        }
+
+        // 渲染主网格：分组在前，未分组网址在后
+        function renderGrid() {
+            navGrid.innerHTML = '';
+            renderGridItems();
+        }
+
+        function renderGridItems() {
+            // 1. 渲染分组
+            groupData.forEach((group, gIndex) => {
+                const a = document.createElement('div');
+                a.className = 'nav-item group-item';
+                a.dataset.groupId = group.id;
+                a.dataset.type = 'group';
+
+                const itemCount = navData.filter(s => s.group === group.id).length;
+
+                let groupIconHtml = '';
+                if (group.iconBase64 || group.iconUrl) {
+                    const src = group.iconBase64 || group.iconUrl;
+                    groupIconHtml = `<img src="${src}" alt="${group.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                     <svg style="display:none" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>`;
+                } else {
+                    groupIconHtml = `<svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>`;
+                }
+
+                a.innerHTML = `
+                    <div class="icon-box group-icon">
+                        ${groupIconHtml}
+                        ${itemCount > 0 ? `<div class="group-count">${itemCount}</div>` : ''}
+                    </div>
+                    <div class="nav-name" title="${group.name}">${group.name}</div>
+                `;
+
+                // 点击打开分组
+                a.addEventListener('click', () => openGroupView(group.id));
+
+                // 右键菜单（桌面）
+                a.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    contextTargetType = 'group';
+                    editingGroupIndex = gIndex;
+                    showContextMenu(e.pageX, e.pageY);
+                });
+
+                // 长按（移动）
+                if (isMobile) {
+                    attachLongPress(a, () => {
+                        contextTargetType = 'group';
+                        editingGroupIndex = gIndex;
+                    });
+                }
+
+                navGrid.appendChild(a);
+            });
+
+            // 2. 渲染未分组网址
+            const ungrouped = getUngroupedData();
+            ungrouped.forEach((item) => {
+                const originalIndex = navData.findIndex(d => d.url === item.url && d.name === item.name);
+                const a = createSiteElement(item, originalIndex);
+                navGrid.appendChild(a);
+            });
+        }
+
+        // 创建单个网址元素
+        function createSiteElement(item, originalIndex) {
+            const a = document.createElement('a');
+            a.className = 'nav-item';
+            a.href = item.url;
+            a.dataset.index = originalIndex;
+            a.dataset.type = 'site';
+
+            let finalIconUrl = item.iconBase64 || item.iconUrl || getFaviconUrl(item.url);
+            const firstLetter = item.name.charAt(0).toUpperCase();
+
+            a.innerHTML = `
+                <div class="icon-box">
+                    ${finalIconUrl ? `<img src="${finalIconUrl}" alt="${item.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : ''}
+                    <div class="default-icon" style="display: ${finalIconUrl ? 'none' : 'flex'}">${firstLetter}</div>
+                </div>
+                <div class="nav-name" title="${item.name}">${item.name}</div>
+            `;
+
+            a.addEventListener('click', () => {
+                item.count = (item.count || 0) + 1;
+                saveData();
+            });
+
+            a.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                contextTargetType = 'site';
+                editingIndex = originalIndex;
+                showContextMenu(e.pageX, e.pageY);
+            });
+
+            if (isMobile) {
+                attachLongPress(a, () => {
+                    contextTargetType = 'site';
+                    editingIndex = originalIndex;
+                });
+            }
+
+            // 桌面拖拽
+            if (currentSettings.sortType === 'manual' && !isMobile) {
+                a.setAttribute('draggable', 'true');
+                
+                a.addEventListener('dragstart', (e) => {
+                    draggedItemIndex = originalIndex;
+                    a.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', originalIndex);
+                    document.querySelectorAll('.nav-item').forEach(el => {
+                        el.classList.remove('insert-left', 'insert-right');
+                    });
+                });
+
+                a.addEventListener('dragend', () => {
+                    a.classList.remove('dragging');
+                    draggedItemIndex = null;
+                    document.querySelectorAll('.nav-item').forEach(el => {
+                        el.classList.remove('insert-left', 'insert-right');
+                    });
+                });
+
+                a.addEventListener('dragover', (e) => {
+                    e.preventDefault(); 
+                    e.dataTransfer.dropEffect = 'move';
+                    document.querySelectorAll('.nav-item').forEach(el => {
+                        el.classList.remove('insert-left', 'insert-right');
+                    });
+                    const rect = a.getBoundingClientRect();
+                    const mouseX = e.clientX;
+                    if (mouseX < rect.left + rect.width / 2) {
+                        a.classList.add('insert-left');
+                    } else {
+                        a.classList.add('insert-right');
+                    }
+                });
+
+                a.addEventListener('dragleave', () => {
+                    a.classList.remove('insert-left', 'insert-right');
+                });
+
+                a.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const isInsertLeft = a.classList.contains('insert-left');
+                    document.querySelectorAll('.nav-item').forEach(el => {
+                        el.classList.remove('insert-left', 'insert-right');
+                    });
+
+                    const targetIndex = originalIndex;
+                    if (draggedItemIndex === null || draggedItemIndex === targetIndex) return;
+
+                    const draggedItem = navData.splice(draggedItemIndex, 1)[0];
+                    let insertIndex = targetIndex;
+                    if (draggedItemIndex < targetIndex) {
+                        insertIndex = isInsertLeft ? targetIndex - 1 : targetIndex;
+                    } else {
+                        insertIndex = isInsertLeft ? targetIndex : targetIndex + 1;
+                    }
+                    if (insertIndex < 0) insertIndex = 0;
+                    if (insertIndex > navData.length) insertIndex = navData.length;
+
+                    navData.splice(insertIndex, 0, draggedItem);
+                    saveData();
+                    renderGrid();
+                });
+            } else {
+                a.setAttribute('draggable', 'false');
+            }
+
+            return a;
+        }
+
+        // 长按辅助函数
+        function attachLongPress(el, setTargetFn) {
+            let timer = null;
+            let triggered = false;
+
+            el.addEventListener('touchstart', (e) => {
+                triggered = false;
+                const touch = e.touches[0];
+                const x = touch.clientX;
+                const y = touch.clientY;
+
+                timer = setTimeout(() => {
+                    triggered = true;
+                    e.preventDefault();
+                    setTargetFn();
+                    showContextMenu(x, y);
+                    setTimeout(() => {
+                        document.addEventListener('touchstart', closeContextMenuTouch, { once: true });
+                    }, 50);
+                }, 600);
+            }, { passive: true });
+
+            el.addEventListener('touchend', (e) => {
+                clearTimeout(timer);
+                if (triggered) e.preventDefault();
+            });
+
+            el.addEventListener('touchmove', () => {
+                clearTimeout(timer);
+            });
+        }
+
+        // --- 右键菜单 ---
+        function showContextMenu(x, y) {
+            contextMenu.style.left = `${x}px`;
+            contextMenu.style.top = `${y}px`;
+            contextMenu.style.display = 'block';
+            document.addEventListener('click', closeContextMenu);
+        }
+
+        function closeContextMenu() {
+            contextMenu.style.display = 'none';
+            document.removeEventListener('click', closeContextMenu);
+        }
+
+        function closeContextMenuTouch(e) {
+            if (contextMenu.contains(e.target)) return;
+            contextMenu.style.display = 'none';
+        }
+
+        // --- 分组查看弹窗 ---
+        function openGroupView(groupId) {
+            const group = groupData.find(g => g.id === groupId);
+            if (!group) return;
+            
+            currentViewGroupId = groupId;
+            groupViewTitle.textContent = group.name;
+            
+            const sites = navData.filter(item => item.group === groupId);
+            
+            groupViewGrid.innerHTML = '';
+            if (sites.length === 0) {
+                groupViewEmpty.style.display = 'block';
+            } else {
+                groupViewEmpty.style.display = 'none';
+                sites.forEach((item) => {
+                    const originalIndex = navData.findIndex(d => d.url === item.url && d.name === item.name);
+                    const a = createSiteElement(item, originalIndex);
+                    groupViewGrid.appendChild(a);
+                });
+            }
+            
+            groupViewModal.style.display = 'flex';
+            setTimeout(() => groupViewModal.classList.add('show'), 10);
+        }
+
+        groupViewClose.addEventListener('click', () => {
+            groupViewModal.classList.remove('show');
+            setTimeout(() => { groupViewModal.style.display = 'none'; }, 300);
+        });
+
+        groupViewModal.addEventListener('click', (e) => {
+            if (e.target === groupViewModal) {
+                groupViewModal.classList.remove('show');
+                setTimeout(() => { groupViewModal.style.display = 'none'; }, 300);
+            }
+        });
+
+        // --- 网址编辑弹窗 ---
+        function openEditModal(index) {
+            editingIndex = index;
+            tempIconBase64 = ''; 
+            fileUpload.value = ''; 
+
+            // 更新分组下拉
+            inputGroup.innerHTML = '<option value="">-- 不分组 --</option>';
+            groupData.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.textContent = g.name;
+                inputGroup.appendChild(opt);
+            });
+
+            if (index !== -1) {
+                modalTitle.textContent = '编辑网址';
+                inputName.value = navData[index].name;
+                inputUrl.value = navData[index].url;
+                inputGroup.value = navData[index].group || '';
+                inputIconUrl.value = navData[index].iconUrl || '';
+                
+                if (navData[index].iconBase64) {
+                    tempIconBase64 = navData[index].iconBase64;
+                    updatePreview(tempIconBase64);
+                } else if (navData[index].iconUrl) {
+                    updatePreview(navData[index].iconUrl);
+                } else {
+                    updatePreview(getFaviconUrl(navData[index].url));
+                }
+            } else {
+                modalTitle.textContent = '添加新网址';
+                inputName.value = '';
+                inputUrl.value = '';
+                inputGroup.value = '';
+                inputIconUrl.value = '';
+                updatePreview('');
+            }
+
+            editModal.style.display = 'flex';
+            setTimeout(() => {
+                editModal.classList.add('show');
+                if (!isMobile) inputName.focus();
+            }, 10);
+        }
+
+        function closeEditModal() {
+            editModal.classList.remove('show');
+            setTimeout(() => { editModal.style.display = 'none'; }, 300);
+        }
+
+        function updatePreview(src) {
+            if (src) {
+                iconPreview.innerHTML = `<img src="${src}" onerror="this.style.display='none';">`;
+            } else {
+                iconPreview.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:var(--input-border);"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>`;
+            }
+        }
+
+        inputIconUrl.addEventListener('input', (e) => {
+            if (e.target.value.trim() !== '') {
+                tempIconBase64 = '';
+                updatePreview(e.target.value.trim());
+            } else {
+                if (!tempIconBase64) updatePreview(getFaviconUrl(inputUrl.value));
+            }
+        });
+
+        inputUrl.addEventListener('input', (e) => {
+            if (inputIconUrl.value.trim() === '' && !tempIconBase64) {
+                updatePreview(getFaviconUrl(e.target.value));
+            }
+        });
+
+        fileUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    tempIconBase64 = event.target.result;
+                    inputIconUrl.value = ''; 
+                    updatePreview(tempIconBase64);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        btnConfirm.addEventListener('click', () => {
+            const name = inputName.value.trim();
+            let url = inputUrl.value.trim();
+            const iconUrl = inputIconUrl.value.trim();
+            const group = inputGroup.value || null;
+
+            if (!name || !url) {
+                alert("网站名称和链接不能为空！");
+                return;
+            }
+
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+            if (editingIndex === -1) {
+                navData.push({ name, url, iconUrl, iconBase64: tempIconBase64, count: 0, group });
+            } else {
+                const oldCount = navData[editingIndex].count || 0;
+                navData[editingIndex] = { name, url, iconUrl, iconBase64: tempIconBase64, count: oldCount, group };
+            }
+
+            saveData();
+            renderGrid();
+            closeEditModal();
+        });
+
+        btnCancel.addEventListener('click', closeEditModal);
+        editModal.addEventListener('click', (e) => { if (e.target === editModal) closeEditModal(); });
+
+        btnAdd.addEventListener('click', () => openEditModal(-1));
+
+        // --- 分组编辑弹窗 ---
+        function openGroupEditModal(index) {
+            editingGroupIndex = index;
+            tempGroupIconBase64 = '';
+            groupFileUpload.value = '';
+
+            if (index !== -1) {
+                groupModalTitle.textContent = '编辑分组';
+                groupInputName.value = groupData[index].name;
+                groupInputIconUrl.value = groupData[index].iconUrl || '';
+                
+                if (groupData[index].iconBase64) {
+                    tempGroupIconBase64 = groupData[index].iconBase64;
+                    updateGroupPreview(tempGroupIconBase64);
+                } else if (groupData[index].iconUrl) {
+                    updateGroupPreview(groupData[index].iconUrl);
+                } else {
+                    updateGroupPreview('');
+                }
+            } else {
+                groupModalTitle.textContent = '新建分组';
+                groupInputName.value = '';
+                groupInputIconUrl.value = '';
+                updateGroupPreview('');
+            }
+
+            groupModal.style.display = 'flex';
+            setTimeout(() => {
+                groupModal.classList.add('show');
+                if (!isMobile) groupInputName.focus();
+            }, 10);
+        }
+
+        function closeGroupModal() {
+            groupModal.classList.remove('show');
+            setTimeout(() => { groupModal.style.display = 'none'; }, 300);
+        }
+
+        function updateGroupPreview(src) {
+            if (src) {
+                groupIconPreview.innerHTML = `<img src="${src}" onerror="this.style.display='none';">`;
+            } else {
+                groupIconPreview.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:var(--input-border);"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>`;
+            }
+        }
+
+        groupInputIconUrl.addEventListener('input', (e) => {
+            if (e.target.value.trim() !== '') {
+                tempGroupIconBase64 = '';
+                updateGroupPreview(e.target.value.trim());
+            } else {
+                if (!tempGroupIconBase64) updateGroupPreview('');
+            }
+        });
+
+        groupFileUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    tempGroupIconBase64 = event.target.result;
+                    groupInputIconUrl.value = '';
+                    updateGroupPreview(tempGroupIconBase64);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        groupBtnConfirm.addEventListener('click', () => {
+            const name = groupInputName.value.trim();
+            const iconUrl = groupInputIconUrl.value.trim();
+
+            if (!name) {
+                alert("分组名称不能为空！");
+                return;
+            }
+
+            if (editingGroupIndex === -1) {
+                groupData.push({
+                    id: 'g_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+                    name,
+                    iconUrl,
+                    iconBase64: tempGroupIconBase64
+                });
+            } else {
+                groupData[editingGroupIndex] = {
+                    ...groupData[editingGroupIndex],
+                    name,
+                    iconUrl,
+                    iconBase64: tempGroupIconBase64
+                };
+            }
+
+            saveData();
+            renderGrid();
+            closeGroupModal();
+        });
+
+        groupBtnCancel.addEventListener('click', closeGroupModal);
+        groupModal.addEventListener('click', (e) => { if (e.target === groupModal) closeGroupModal(); });
+
+        btnAddGroup.addEventListener('click', () => openGroupEditModal(-1));
+
+        // --- 设置面板 ---
+        settingToggle.addEventListener('click', () => {
+            settingModal.style.display = 'flex';
+            setTimeout(() => settingModal.classList.add('show'), 10);
+        });
+
+        btnCloseSetting.addEventListener('click', () => {
+            settingModal.classList.remove('show');
+            setTimeout(() => { settingModal.style.display = 'none'; }, 300);
+        });
+
+        function handleSettingChange() {
+            currentSettings.sortType = setSort.value;
+            currentSettings.cols = parseInt(setCols.value);
+            currentSettings.iconSize = parseInt(setIconSize.value);
+            currentSettings.gapX = parseInt(setGapX.value);
+            currentSettings.gapY = parseInt(setGapY.value);
+            
+            updateSettingUI();
+            applySettings();
+            renderGrid();
+        }
+
+        setSort.addEventListener('change', handleSettingChange);
+        setCols.addEventListener('input', handleSettingChange);
+        setIconSize.addEventListener('input', handleSettingChange);
+        setGapX.addEventListener('input', handleSettingChange);
+        setGapY.addEventListener('input', handleSettingChange);
+
+        // --- 数据导入导出 ---
+        btnExport.addEventListener('click', () => {
+            const backupData = {
+                navData: navData,
+                groupData: groupData,
+                settings: currentSettings
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "nav_backup_" + new Date().getTime() + ".json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        });
+
+        btnImport.addEventListener('click', () => { importFile.click(); });
+
+        importFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const parsedData = JSON.parse(event.target.result);
+                    if (parsedData.navData && Array.isArray(parsedData.navData)) {
+                        if (confirm("导入将覆盖当前所有数据，确定继续吗？")) {
+                            navData = parsedData.navData;
+                            navData.forEach(item => { 
+                                if (typeof item.count === 'undefined') item.count = 0; 
+                                if (typeof item.group === 'undefined') item.group = null;
+                            });
+                            groupData = parsedData.groupData || [];
+                            
+                            if (parsedData.settings) {
+                                currentSettings = { ...defaultSettings, ...parsedData.settings };
+                            }
+                            saveData();
+                            saveSettings();
+                            window.location.reload();
+                        }
+                    } else {
+                        alert("备份文件格式不正确！");
+                    }
+                } catch (error) {
+                    alert("解析文件失败！");
+                }
+                importFile.value = ''; 
+            };
+            reader.readAsText(file);
+        });
+
+        btnClear.addEventListener('click', () => {
+            if (confirm("确定要清空所有网址和分组数据吗？")) {
+                navData = [];
+                groupData = [];
+                saveData();
+                renderGrid();
+            }
+        });
+
+        // --- 右键菜单事件 ---
+        topMenu.addEventListener('click', () => {
+            closeContextMenu();
+            if (contextTargetType === 'site' && editingIndex !== -1) {
+                const topItem = navData.splice(editingIndex, 1)[0];
+                navData.unshift(topItem);
+                saveData();
+                renderGrid();
+            } else if (contextTargetType === 'group' && editingGroupIndex !== -1) {
+                const topGroup = groupData.splice(editingGroupIndex, 1)[0];
+                groupData.unshift(topGroup);
+                saveData();
+                renderGrid();
+            }
+        });
+
+        editMenu.addEventListener('click', () => { 
+            closeContextMenu(); 
+            if (contextTargetType === 'site') {
+                openEditModal(editingIndex); 
+            } else {
+                openGroupEditModal(editingGroupIndex);
+            }
+        });
+
+        deleteMenu.addEventListener('click', () => {
+            closeContextMenu();
+            if (contextTargetType === 'site') {
+                if (editingIndex !== -1 && confirm(`确定要删除 "${navData[editingIndex].name}" 吗？`)) {
+                    navData.splice(editingIndex, 1);
+                    saveData();
+                    renderGrid();
+                }
+            } else if (contextTargetType === 'group') {
+                if (editingGroupIndex !== -1) {
+                    const g = groupData[editingGroupIndex];
+                    const count = navData.filter(s => s.group === g.id).length;
+                    const msg = count > 0 
+                        ? `分组 "${g.name}" 下有 ${count} 个网址，删除后这些网址会变为“未分组”。确定删除吗？`
+                        : `确定要删除分组 "${g.name}" 吗？`;
+                    if (confirm(msg)) {
+                        // 将该分组下的网址设为未分组
+                        navData.forEach(s => { if (s.group === g.id) s.group = null; });
+                        groupData.splice(editingGroupIndex, 1);
+                        saveData();
+                        renderGrid();
+                    }
+                }
+            }
+        });
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        });
+
+        init();
+    </script>
+</body>
+</html>
