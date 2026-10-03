@@ -2,14 +2,13 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>我的导航</title>
     <style>
         :root {
             --bg-color: #f5f6f8;
             --text-color: #333;
             
-            /* 弹窗颜色 */
             --modal-bg: #ffffff;
             --modal-overlay: rgba(0, 0, 0, 0.4);
             --input-bg: #f9f9f9;
@@ -23,7 +22,6 @@
             --danger-color: #ff4d4f;
             --danger-hover: #ff7875;
 
-            /* 动态变量（由JS控制） */
             --icon-size: 60px;
             --grid-cols: 10;
             --gap-x: 20px;
@@ -51,6 +49,9 @@
             margin: 0;
             padding: 0;
             user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
         }
 
         body {
@@ -65,7 +66,6 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* 顶部地球图标 */
         .header-icon {
             width: 80px;
             height: 80px;
@@ -89,7 +89,6 @@
             fill: #8a9ba8;
         }
 
-        /* 导航网格 */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(var(--grid-cols), 1fr);
@@ -103,7 +102,6 @@
             transition: gap 0.3s;
         }
 
-        /* 单个图标项 */
         .nav-item {
             display: flex;
             flex-direction: column;
@@ -119,13 +117,11 @@
             cursor: grabbing;
         }
 
-        /* 正在被拖拽的元素 */
         .nav-item.dragging {
             opacity: 0.4;
             transform: scale(0.9);
         }
 
-        /* 拖拽插入指示线 */
         .nav-item.insert-left::before,
         .nav-item.insert-right::after {
             content: '';
@@ -203,7 +199,6 @@
             pointer-events: none;
         }
 
-        /* --- 右键菜单 --- */
         .context-menu {
             position: absolute;
             background: var(--modal-bg);
@@ -233,7 +228,6 @@
             color: var(--danger-color);
         }
 
-        /* --- 右下角悬浮操作区 --- */
         .floating-area {
             position: fixed;
             bottom: 40px;
@@ -302,7 +296,6 @@
             fill: #fff;
         }
 
-        /* --- 自定义模态框 --- */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -313,6 +306,7 @@
             z-index: 2000;
             opacity: 0;
             transition: opacity 0.3s;
+            padding: 20px;
         }
 
         .modal-overlay.show {
@@ -324,11 +318,13 @@
             background: var(--modal-bg);
             padding: 25px 30px;
             border-radius: 16px;
-            width: 90%;
+            width: 100%;
             max-width: 400px;
             box-shadow: 0 15px 30px rgba(0,0,0,0.2);
             transform: translateY(20px);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-overlay.show .modal-content {
@@ -449,7 +445,6 @@
             background: var(--btn-primary-hover);
         }
 
-        /* 设置面板专属样式 */
         .setting-row {
             display: flex;
             justify-content: space-between;
@@ -497,6 +492,98 @@
         }
         .data-manage-row .btn.danger:hover {
             background: rgba(255, 77, 79, 0.1);
+        }
+
+        /* ======================================================
+           移动端适配（新增，不影响桌面端）
+           ====================================================== */
+
+        /* 平板 / 手机横屏 */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 5vh;
+            }
+
+            .header-icon {
+                width: 60px;
+                height: 60px;
+                margin-bottom: 25px;
+            }
+
+            /* 强制 5 列，覆盖 JS 设置 */
+            .grid-container {
+                grid-template-columns: repeat(5, 1fr) !important;
+                padding: 0 15px;
+                gap: 22px 12px;
+                margin-bottom: 100px;
+            }
+
+            .icon-box {
+                width: 52px !important;
+                height: 52px !important;
+            }
+
+            .nav-name {
+                font-size: 12px;
+                margin-top: 8px;
+                max-width: 70px;
+            }
+
+            .floating-area {
+                bottom: 25px;
+                right: 20px;
+                gap: 12px;
+            }
+
+            .fab-btn {
+                width: 46px;
+                height: 46px;
+            }
+
+            .fab-btn svg {
+                width: 22px;
+                height: 22px;
+            }
+
+            /* 移动端添加按钮常显（因为没有 hover） */
+            .add-btn-fab {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                pointer-events: auto;
+            }
+
+            .modal-content {
+                padding: 20px;
+                border-radius: 14px;
+            }
+
+            .modal-title {
+                font-size: 16px;
+                margin-bottom: 15px;
+            }
+
+            .setting-row input[type="range"] {
+                width: 120px;
+            }
+        }
+
+        /* 手机竖屏 */
+        @media (max-width: 480px) {
+            .grid-container {
+                grid-template-columns: repeat(4, 1fr) !important;
+                padding: 0 12px;
+                gap: 20px 8px;
+            }
+
+            .icon-box {
+                width: 46px !important;
+                height: 46px !important;
+            }
+
+            .nav-name {
+                font-size: 11px;
+                max-width: 60px;
+            }
         }
     </style>
 </head>
@@ -615,7 +702,6 @@
     </div>
 
     <script>
-        // 默认数据 (增加 count 属性记录使用频率)
         const defaultData = [
             { name: '百度', url: 'https://www.baidu.com', count: 0 },
             { name: '淘宝', url: 'https://www.taobao.com', count: 0 },
@@ -625,22 +711,20 @@
             { name: '微博', url: 'https://weibo.com', count: 0 }
         ];
 
-        // 默认设置 (增加排序方式)
         const defaultSettings = {
             cols: 10,
             iconSize: 60,
             gapX: 20,
             gapY: 30,
-            sortType: 'manual' // manual | frequency | alphabetical
+            sortType: 'manual'
         };
 
         let navData = [];
         let currentSettings = {};
         let editingIndex = -1; 
         let tempIconBase64 = ''; 
-        let draggedItemIndex = null; // 当前拖拽的索引
+        let draggedItemIndex = null;
 
-        // DOM 元素
         const navGrid = document.getElementById('navGrid');
         const themeToggle = document.getElementById('themeToggle');
         const settingToggle = document.getElementById('settingToggle');
@@ -677,8 +761,6 @@
         function init() {
             const storedData = localStorage.getItem('myNavData');
             navData = storedData ? JSON.parse(storedData) : [...defaultData];
-            
-            // 数据迁移兼容：确保每个项都有 count
             navData.forEach(item => { if (typeof item.count === 'undefined') item.count = 0; });
 
             const storedSettings = localStorage.getItem('myNavSettings');
@@ -702,6 +784,7 @@
         }
 
         function applySettings() {
+            // 桌面端应用用户设置；移动端由 CSS 媒体查询覆盖
             const root = document.documentElement;
             root.style.setProperty('--grid-cols', currentSettings.cols);
             root.style.setProperty('--icon-size', currentSettings.iconSize + 'px');
@@ -731,10 +814,8 @@
             }
         }
 
-        // 根据排序方式获取渲染数据
         function getSortedData() {
             let dataToRender = [...navData];
-
             if (currentSettings.sortType === 'frequency') {
                 dataToRender.sort((a, b) => (b.count || 0) - (a.count || 0));
             } else if (currentSettings.sortType === 'alphabetical') {
@@ -751,7 +832,6 @@
                 const a = document.createElement('a');
                 a.className = 'nav-item';
                 a.href = item.url;
-                // 当前页打开（不再使用 _blank）
                 const originalIndex = navData.findIndex(d => d.url === item.url && d.name === item.name);
                 a.dataset.index = originalIndex;
 
@@ -766,16 +846,13 @@
                     <div class="nav-name" title="${item.name}">${item.name}</div>
                 `;
 
-                // 点击事件：增加使用次数
                 a.addEventListener('click', () => {
                     item.count = (item.count || 0) + 1;
                     saveData();
                 });
 
-                // 右键事件
                 a.addEventListener('contextmenu', (e) => handleContextMenu(e, originalIndex));
 
-                // 拖拽排序事件（仅在 manual 模式下生效）
                 if (currentSettings.sortType === 'manual') {
                     a.setAttribute('draggable', 'true');
                     
@@ -784,7 +861,6 @@
                         a.classList.add('dragging');
                         e.dataTransfer.effectAllowed = 'move';
                         e.dataTransfer.setData('text/plain', originalIndex);
-                        // 清除所有可能的插入指示线
                         document.querySelectorAll('.nav-item').forEach(el => {
                             el.classList.remove('insert-left', 'insert-right');
                         });
@@ -802,12 +878,10 @@
                         e.preventDefault(); 
                         e.dataTransfer.dropEffect = 'move';
                         
-                        // 先清除所有指示线
                         document.querySelectorAll('.nav-item').forEach(el => {
                             el.classList.remove('insert-left', 'insert-right');
                         });
 
-                        // 判断鼠标在左半区还是右半区
                         const rect = a.getBoundingClientRect();
                         const mouseX = e.clientX;
                         
@@ -825,7 +899,6 @@
                     a.addEventListener('drop', (e) => {
                         e.preventDefault();
                         
-                        // 记录指示线状态
                         const isInsertLeft = a.classList.contains('insert-left');
                         document.querySelectorAll('.nav-item').forEach(el => {
                             el.classList.remove('insert-left', 'insert-right');
@@ -834,10 +907,8 @@
                         const targetIndex = originalIndex;
                         if (draggedItemIndex === null || draggedItemIndex === targetIndex) return;
 
-                        // 取出被拖拽的元素
                         const draggedItem = navData.splice(draggedItemIndex, 1)[0];
                         
-                        // 计算插入位置
                         let insertIndex = targetIndex;
                         if (draggedItemIndex < targetIndex) {
                             insertIndex = isInsertLeft ? targetIndex - 1 : targetIndex;
@@ -860,7 +931,6 @@
             });
         }
 
-        // --- 右键菜单 ---
         function handleContextMenu(e, index) {
             e.preventDefault();
             editingIndex = index;
@@ -875,7 +945,6 @@
             document.removeEventListener('click', closeContextMenu);
         }
 
-        // --- 编辑弹窗 ---
         function openEditModal(index) {
             editingIndex = index;
             tempIconBase64 = ''; 
@@ -980,7 +1049,6 @@
 
         btnAdd.addEventListener('click', () => openEditModal(-1));
 
-        // --- 设置面板 ---
         settingToggle.addEventListener('click', () => {
             settingModal.style.display = 'flex';
             setTimeout(() => settingModal.classList.add('show'), 10);
@@ -1009,7 +1077,6 @@
         setGapX.addEventListener('input', handleSettingChange);
         setGapY.addEventListener('input', handleSettingChange);
 
-        // --- 数据导入导出 ---
         btnExport.addEventListener('click', () => {
             const backupData = {
                 navData: navData,
@@ -1064,7 +1131,6 @@
             }
         });
 
-        // --- 右键菜单事件 ---
         topMenu.addEventListener('click', () => {
             closeContextMenu();
             if (editingIndex !== -1) {
