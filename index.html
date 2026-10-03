@@ -2,14 +2,14 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的导航</title>
     <style>
         :root {
             --bg-color: #f5f6f8;
             --text-color: #333;
             
+            /* 弹窗颜色 */
             --modal-bg: #ffffff;
             --modal-overlay: rgba(0, 0, 0, 0.4);
             --input-bg: #f9f9f9;
@@ -23,6 +23,7 @@
             --danger-color: #ff4d4f;
             --danger-hover: #ff7875;
 
+            /* 动态变量（由JS控制） */
             --icon-size: 60px;
             --grid-cols: 10;
             --gap-x: 20px;
@@ -50,13 +51,6 @@
             margin: 0;
             padding: 0;
             user-select: none;
-            -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-        }
-
-        html, body {
-            overscroll-behavior: none;
         }
 
         body {
@@ -71,6 +65,7 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
+        /* 顶部地球图标 */
         .header-icon {
             width: 80px;
             height: 80px;
@@ -108,6 +103,7 @@
             transition: gap 0.3s;
         }
 
+        /* 单个图标项 */
         .nav-item {
             display: flex;
             flex-direction: column;
@@ -123,6 +119,7 @@
             cursor: grabbing;
         }
 
+        /* 正在被拖拽的元素 */
         .nav-item.dragging {
             opacity: 0.4;
             transform: scale(0.9);
@@ -160,31 +157,12 @@
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s;
             overflow: hidden;
             border-radius: 20%;
-            position: relative;
-        }
-
-        /* 分组图标加一个文件夹角标 */
-        .icon-box.group-icon {
-            background: linear-gradient(135deg, #ffd580 0%, #ff9c3f 100%);
-            border-radius: 20%;
-        }
-
-        .icon-box.group-icon svg {
-            width: 55%;
-            height: 55%;
-            fill: #fff;
         }
 
         .nav-item:hover .icon-box {
             transform: scale(1.2);
             filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15));
             z-index: 10;
-        }
-
-        @media (hover: none) {
-            .nav-item:active .icon-box {
-                transform: scale(0.95);
-            }
         }
 
         body.dark-mode .nav-item:hover .icon-box {
@@ -225,26 +203,6 @@
             pointer-events: none;
         }
 
-        /* 分组图标下的数量角标 */
-        .group-count {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            min-width: 20px;
-            height: 20px;
-            background: #ff4d4f;
-            color: #fff;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 600;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0 5px;
-            pointer-events: none;
-            border: 2px solid var(--bg-color);
-        }
-
         /* --- 右键菜单 --- */
         .context-menu {
             position: absolute;
@@ -254,7 +212,7 @@
             padding: 5px 0;
             z-index: 1000;
             display: none;
-            min-width: 140px;
+            min-width: 120px;
             border: 1px solid var(--input-border);
         }
 
@@ -271,21 +229,8 @@
             background-color: var(--input-bg);
         }
 
-        .context-menu li:active {
-            background-color: var(--input-bg);
-        }
-
         .context-menu li.delete {
             color: var(--danger-color);
-        }
-
-        .context-menu li.divider {
-            height: 1px;
-            padding: 0;
-            margin: 5px 0;
-            background: var(--input-border);
-            cursor: default;
-            pointer-events: none;
         }
 
         /* --- 右下角悬浮操作区 --- */
@@ -341,14 +286,7 @@
             pointer-events: none;
         }
 
-        .add-group-btn-fab {
-            opacity: 0;
-            transform: scale(0.5) translateY(20px);
-            pointer-events: none;
-        }
-
-        .floating-area:hover .add-btn-fab,
-        .floating-area:hover .add-group-btn-fab {
+        .floating-area:hover .add-btn-fab {
             opacity: 1;
             transform: scale(1) translateY(0);
             pointer-events: auto;
@@ -359,19 +297,12 @@
             background-color: var(--input-focus);
             box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
         }
-
-        .add-group-btn-fab:hover {
-            transform: scale(1.1) !important;
-            background-color: #ff9c3f;
-            box-shadow: 0 6px 20px rgba(255, 156, 63, 0.4);
-        }
         
-        .add-btn-fab:hover svg,
-        .add-group-btn-fab:hover svg {
+        .add-btn-fab:hover svg {
             fill: #fff;
         }
 
-        /* --- 模态框 --- */
+        /* --- 自定义模态框 --- */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -382,7 +313,6 @@
             z-index: 2000;
             opacity: 0;
             transition: opacity 0.3s;
-            padding: 20px;
         }
 
         .modal-overlay.show {
@@ -394,13 +324,11 @@
             background: var(--modal-bg);
             padding: 25px 30px;
             border-radius: 16px;
-            width: 100%;
+            width: 90%;
             max-width: 400px;
             box-shadow: 0 15px 30px rgba(0,0,0,0.2);
             transform: translateY(20px);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            max-height: 90vh;
-            overflow-y: auto;
         }
 
         .modal-overlay.show .modal-content {
@@ -521,7 +449,7 @@
             background: var(--btn-primary-hover);
         }
 
-        /* 设置面板 */
+        /* 设置面板专属样式 */
         .setting-row {
             display: flex;
             justify-content: space-between;
@@ -570,185 +498,6 @@
         .data-manage-row .btn.danger:hover {
             background: rgba(255, 77, 79, 0.1);
         }
-
-        /* --- 分组内容弹窗 --- */
-        .group-modal-content {
-            background: var(--modal-bg);
-            padding: 25px 20px;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 700px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-            transform: translateY(20px);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-
-        .modal-overlay.show .group-modal-content {
-            transform: translateY(0);
-        }
-
-        .group-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 0 5px;
-        }
-
-        .group-modal-title {
-            font-size: 18px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .group-modal-title svg {
-            width: 24px;
-            height: 24px;
-            fill: #ff9c3f;
-        }
-
-        .group-modal-close {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: background 0.2s;
-            background: var(--input-bg);
-        }
-
-        .group-modal-close:hover {
-            background: var(--btn-secondary-hover);
-        }
-
-        .group-modal-close svg {
-            width: 16px;
-            height: 16px;
-            fill: var(--text-color);
-        }
-
-        /* 分组内网格 */
-        .group-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 25px 15px;
-            justify-items: center;
-            padding: 10px 5px;
-        }
-
-        .group-empty {
-            text-align: center;
-            padding: 40px 0;
-            opacity: 0.6;
-            font-size: 14px;
-        }
-
-        /* ============================================
-           移动端适配
-           ============================================ */
-        @media (max-width: 768px) {
-            body {
-                padding-top: 5vh;
-            }
-
-            .header-icon {
-                width: 60px;
-                height: 60px;
-                margin-bottom: 25px;
-            }
-
-            .grid-container {
-                grid-template-columns: repeat(5, 1fr) !important;
-                padding: 0 15px;
-                gap: 20px 10px;
-                margin-bottom: 100px;
-            }
-
-            .icon-box {
-                width: 48px !important;
-                height: 48px !important;
-            }
-
-            .nav-name {
-                font-size: 11px;
-                margin-top: 8px;
-                max-width: 60px;
-            }
-
-            .floating-area {
-                bottom: 25px;
-                right: 20px;
-                gap: 12px;
-            }
-
-            .fab-btn {
-                width: 44px;
-                height: 44px;
-            }
-
-            .fab-btn svg {
-                width: 20px;
-                height: 20px;
-            }
-
-            .add-btn-fab,
-            .add-group-btn-fab {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-                pointer-events: auto;
-            }
-
-            .modal-content {
-                padding: 20px;
-                border-radius: 14px;
-            }
-
-            .modal-title {
-                font-size: 16px;
-                margin-bottom: 15px;
-            }
-
-            .setting-row input[type="range"] {
-                width: 120px;
-            }
-
-            .group-modal-content {
-                padding: 20px 15px;
-                border-radius: 14px;
-            }
-
-            .group-grid {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 20px 10px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .grid-container {
-                grid-template-columns: repeat(4, 1fr) !important;
-                padding: 0 10px;
-                gap: 18px 8px;
-            }
-
-            .icon-box {
-                width: 44px !important;
-                height: 44px !important;
-            }
-
-            .nav-name {
-                font-size: 10px;
-            }
-
-            .group-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
     </style>
 </head>
 <body>
@@ -762,9 +511,6 @@
     <div class="grid-container" id="navGrid"></div>
 
     <div class="floating-area">
-        <div class="fab-btn add-group-btn-fab" id="btnAddGroup" title="新建分组">
-            <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 8h-3v3h-2v-3h-3v-2h3V9h2v3h3v2z"/></svg>
-        </div>
         <div class="fab-btn add-btn-fab" id="btnAdd" title="添加新网址">
             <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
         </div>
@@ -777,8 +523,8 @@
 
     <ul class="context-menu" id="contextMenu">
         <li id="topMenu">📌 置顶</li>
-        <li id="editMenu">✏️ 编辑</li>
-        <li id="deleteMenu" class="delete">🗑️ 删除</li>
+        <li id="editMenu">✏️ 编辑网址</li>
+        <li id="deleteMenu" class="delete">🗑️ 删除网址</li>
     </ul>
 
     <!-- 1. 添加/编辑网址弹窗 -->
@@ -794,13 +540,6 @@
             <div class="form-group">
                 <label>网站链接</label>
                 <input type="url" id="inputUrl" placeholder="例如：https://www.baidu.com" autocomplete="off">
-            </div>
-
-            <div class="form-group">
-                <label>所属分组 (可选)</label>
-                <select id="inputGroup">
-                    <option value="">-- 不分组 --</option>
-                </select>
             </div>
 
             <div class="form-group">
@@ -823,54 +562,7 @@
         </div>
     </div>
 
-    <!-- 2. 添加/编辑分组弹窗 -->
-    <div class="modal-overlay" id="groupModal">
-        <div class="modal-content">
-            <div class="modal-title" id="groupModalTitle">新建分组</div>
-            
-            <div class="form-group">
-                <label>分组名称</label>
-                <input type="text" id="groupInputName" placeholder="例如：社交、工具" autocomplete="off">
-            </div>
-
-            <div class="form-group">
-                <label>分组图标 (可选)</label>
-                <div class="icon-upload-row">
-                    <div class="icon-preview" id="groupIconPreview">
-                        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:var(--input-border);"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
-                    </div>
-                    <input type="text" id="groupInputIconUrl" placeholder="输入图片URL" style="flex:1;">
-                    <label class="btn-upload" for="groupFileUpload">本地图片</label>
-                    <input type="file" id="groupFileUpload" accept="image/*">
-                </div>
-                <div style="font-size: 12px; opacity: 0.6; margin-top: 5px;">留空则使用默认文件夹图标</div>
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn btn-cancel" id="groupBtnCancel">取消</button>
-                <button class="btn btn-confirm" id="groupBtnConfirm">确定</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. 分组内容展示弹窗 -->
-    <div class="modal-overlay" id="groupViewModal">
-        <div class="group-modal-content">
-            <div class="group-modal-header">
-                <div class="group-modal-title">
-                    <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
-                    <span id="groupViewTitle">分组</span>
-                </div>
-                <div class="group-modal-close" id="groupViewClose">
-                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                </div>
-            </div>
-            <div class="group-grid" id="groupViewGrid"></div>
-            <div class="group-empty" id="groupViewEmpty" style="display:none;">该分组暂无网址</div>
-        </div>
-    </div>
-
-    <!-- 4. 设置弹窗 -->
+    <!-- 2. 界面设置与数据管理弹窗 -->
     <div class="modal-overlay" id="settingModal">
         <div class="modal-content">
             <div class="modal-title">设置与数据</div>
@@ -923,82 +615,52 @@
     </div>
 
     <script>
-        const isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent) || ('ontouchstart' in window && window.innerWidth <= 1024);
-
+        // 默认数据 (增加 count 属性记录使用频率)
         const defaultData = [
-            { name: '百度', url: 'https://www.baidu.com', count: 0, group: null },
-            { name: '淘宝', url: 'https://www.taobao.com', count: 0, group: null },
-            { name: '知乎', url: 'https://www.zhihu.com', count: 0, group: null },
-            { name: 'B站', url: 'https://www.bilibili.com', count: 0, group: null },
-            { name: 'GitHub', url: 'https://github.com', count: 0, group: null },
-            { name: '微博', url: 'https://weibo.com', count: 0, group: null }
+            { name: '百度', url: 'https://www.baidu.com', count: 0 },
+            { name: '淘宝', url: 'https://www.taobao.com', count: 0 },
+            { name: '知乎', url: 'https://www.zhihu.com', count: 0 },
+            { name: 'B站', url: 'https://www.bilibili.com', count: 0 },
+            { name: 'GitHub', url: 'https://github.com', count: 0 },
+            { name: '微博', url: 'https://weibo.com', count: 0 }
         ];
 
-        const defaultGroups = [
-            // { id: 'g1', name: '社交', iconUrl: '', iconBase64: '' }
-        ];
-
+        // 默认设置 (增加排序方式)
         const defaultSettings = {
             cols: 10,
             iconSize: 60,
             gapX: 20,
             gapY: 30,
-            sortType: 'manual'
+            sortType: 'manual' // manual | frequency | alphabetical
         };
 
         let navData = [];
-        let groupData = [];
         let currentSettings = {};
-        let editingIndex = -1;         // 当前编辑的网址索引
-        let editingGroupIndex = -1;    // 当前编辑的分组索引
-        let currentViewGroupId = null; // 当前查看的分组ID
+        let editingIndex = -1; 
         let tempIconBase64 = ''; 
-        let tempGroupIconBase64 = '';
-        let draggedItemIndex = null;
-        let contextTargetType = 'site'; // 'site' 或 'group'
+        let draggedItemIndex = null; // 当前拖拽的索引
 
-        // DOM
+        // DOM 元素
         const navGrid = document.getElementById('navGrid');
         const themeToggle = document.getElementById('themeToggle');
         const settingToggle = document.getElementById('settingToggle');
         const btnAdd = document.getElementById('btnAdd');
-        const btnAddGroup = document.getElementById('btnAddGroup');
         
         const contextMenu = document.getElementById('contextMenu');
         const editMenu = document.getElementById('editMenu');
         const deleteMenu = document.getElementById('deleteMenu');
         const topMenu = document.getElementById('topMenu');
         
-        // 网址编辑弹窗
         const editModal = document.getElementById('editModal');
         const modalTitle = document.getElementById('modalTitle');
         const inputName = document.getElementById('inputName');
         const inputUrl = document.getElementById('inputUrl');
-        const inputGroup = document.getElementById('inputGroup');
         const inputIconUrl = document.getElementById('inputIconUrl');
         const fileUpload = document.getElementById('fileUpload');
         const iconPreview = document.getElementById('iconPreview');
         const btnCancel = document.getElementById('btnCancel');
         const btnConfirm = document.getElementById('btnConfirm');
 
-        // 分组编辑弹窗
-        const groupModal = document.getElementById('groupModal');
-        const groupModalTitle = document.getElementById('groupModalTitle');
-        const groupInputName = document.getElementById('groupInputName');
-        const groupInputIconUrl = document.getElementById('groupInputIconUrl');
-        const groupFileUpload = document.getElementById('groupFileUpload');
-        const groupIconPreview = document.getElementById('groupIconPreview');
-        const groupBtnCancel = document.getElementById('groupBtnCancel');
-        const groupBtnConfirm = document.getElementById('groupBtnConfirm');
-
-        // 分组查看弹窗
-        const groupViewModal = document.getElementById('groupViewModal');
-        const groupViewTitle = document.getElementById('groupViewTitle');
-        const groupViewGrid = document.getElementById('groupViewGrid');
-        const groupViewClose = document.getElementById('groupViewClose');
-        const groupViewEmpty = document.getElementById('groupViewEmpty');
-
-        // 设置
         const settingModal = document.getElementById('settingModal');
         const setSort = document.getElementById('setSort');
         const setCols = document.getElementById('setCols');
@@ -1015,13 +677,9 @@
         function init() {
             const storedData = localStorage.getItem('myNavData');
             navData = storedData ? JSON.parse(storedData) : [...defaultData];
-            navData.forEach(item => { 
-                if (typeof item.count === 'undefined') item.count = 0; 
-                if (typeof item.group === 'undefined') item.group = null;
-            });
-
-            const storedGroups = localStorage.getItem('myGroupData');
-            groupData = storedGroups ? JSON.parse(storedGroups) : [...defaultGroups];
+            
+            // 数据迁移兼容：确保每个项都有 count
+            navData.forEach(item => { if (typeof item.count === 'undefined') item.count = 0; });
 
             const storedSettings = localStorage.getItem('myNavSettings');
             currentSettings = storedSettings ? { ...defaultSettings, ...JSON.parse(storedSettings) } : { ...defaultSettings };
@@ -1037,7 +695,6 @@
 
         function saveData() {
             localStorage.setItem('myNavData', JSON.stringify(navData));
-            localStorage.setItem('myGroupData', JSON.stringify(groupData));
         }
 
         function saveSettings() {
@@ -1045,13 +702,11 @@
         }
 
         function applySettings() {
-            if (!isMobile) {
-                const root = document.documentElement;
-                root.style.setProperty('--grid-cols', currentSettings.cols);
-                root.style.setProperty('--icon-size', currentSettings.iconSize + 'px');
-                root.style.setProperty('--gap-x', currentSettings.gapX + 'px');
-                root.style.setProperty('--gap-y', currentSettings.gapY + 'px');
-            }
+            const root = document.documentElement;
+            root.style.setProperty('--grid-cols', currentSettings.cols);
+            root.style.setProperty('--icon-size', currentSettings.iconSize + 'px');
+            root.style.setProperty('--gap-x', currentSettings.gapX + 'px');
+            root.style.setProperty('--gap-y', currentSettings.gapY + 'px');
             saveSettings();
         }
 
@@ -1076,227 +731,141 @@
             }
         }
 
-        // 获取未分组的网址
-        function getUngroupedData() {
-            let data = navData.filter(item => !item.group || !groupData.find(g => g.id === item.group));
+        // 根据排序方式获取渲染数据
+        function getSortedData() {
+            let dataToRender = [...navData];
+
             if (currentSettings.sortType === 'frequency') {
-                data.sort((a, b) => (b.count || 0) - (a.count || 0));
+                dataToRender.sort((a, b) => (b.count || 0) - (a.count || 0));
             } else if (currentSettings.sortType === 'alphabetical') {
-                data.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+                dataToRender.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
             }
-            return data;
+            return dataToRender;
         }
 
-        // 渲染主网格：分组在前，未分组网址在后
         function renderGrid() {
             navGrid.innerHTML = '';
-            renderGridItems();
-        }
+            const sortedData = getSortedData();
 
-        function renderGridItems() {
-            // 1. 渲染分组
-            groupData.forEach((group, gIndex) => {
-                const a = document.createElement('div');
-                a.className = 'nav-item group-item';
-                a.dataset.groupId = group.id;
-                a.dataset.type = 'group';
+            sortedData.forEach((item, index) => {
+                const a = document.createElement('a');
+                a.className = 'nav-item';
+                a.href = item.url;
+                // 当前页打开（不再使用 _blank）
+                const originalIndex = navData.findIndex(d => d.url === item.url && d.name === item.name);
+                a.dataset.index = originalIndex;
 
-                const itemCount = navData.filter(s => s.group === group.id).length;
-
-                let groupIconHtml = '';
-                if (group.iconBase64 || group.iconUrl) {
-                    const src = group.iconBase64 || group.iconUrl;
-                    groupIconHtml = `<img src="${src}" alt="${group.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                     <svg style="display:none" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>`;
-                } else {
-                    groupIconHtml = `<svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>`;
-                }
+                let finalIconUrl = item.iconBase64 || item.iconUrl || getFaviconUrl(item.url);
+                const firstLetter = item.name.charAt(0).toUpperCase();
 
                 a.innerHTML = `
-                    <div class="icon-box group-icon">
-                        ${groupIconHtml}
-                        ${itemCount > 0 ? `<div class="group-count">${itemCount}</div>` : ''}
+                    <div class="icon-box">
+                        ${finalIconUrl ? `<img src="${finalIconUrl}" alt="${item.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : ''}
+                        <div class="default-icon" style="display: ${finalIconUrl ? 'none' : 'flex'}">${firstLetter}</div>
                     </div>
-                    <div class="nav-name" title="${group.name}">${group.name}</div>
+                    <div class="nav-name" title="${item.name}">${item.name}</div>
                 `;
 
-                // 点击打开分组
-                a.addEventListener('click', () => openGroupView(group.id));
-
-                // 右键菜单（桌面）
-                a.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    contextTargetType = 'group';
-                    editingGroupIndex = gIndex;
-                    showContextMenu(e.pageX, e.pageY);
+                // 点击事件：增加使用次数
+                a.addEventListener('click', () => {
+                    item.count = (item.count || 0) + 1;
+                    saveData();
                 });
 
-                // 长按（移动）
-                if (isMobile) {
-                    attachLongPress(a, () => {
-                        contextTargetType = 'group';
-                        editingGroupIndex = gIndex;
+                // 右键事件
+                a.addEventListener('contextmenu', (e) => handleContextMenu(e, originalIndex));
+
+                // 拖拽排序事件（仅在 manual 模式下生效）
+                if (currentSettings.sortType === 'manual') {
+                    a.setAttribute('draggable', 'true');
+                    
+                    a.addEventListener('dragstart', (e) => {
+                        draggedItemIndex = originalIndex;
+                        a.classList.add('dragging');
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', originalIndex);
+                        // 清除所有可能的插入指示线
+                        document.querySelectorAll('.nav-item').forEach(el => {
+                            el.classList.remove('insert-left', 'insert-right');
+                        });
                     });
+
+                    a.addEventListener('dragend', () => {
+                        a.classList.remove('dragging');
+                        draggedItemIndex = null;
+                        document.querySelectorAll('.nav-item').forEach(el => {
+                            el.classList.remove('insert-left', 'insert-right');
+                        });
+                    });
+
+                    a.addEventListener('dragover', (e) => {
+                        e.preventDefault(); 
+                        e.dataTransfer.dropEffect = 'move';
+                        
+                        // 先清除所有指示线
+                        document.querySelectorAll('.nav-item').forEach(el => {
+                            el.classList.remove('insert-left', 'insert-right');
+                        });
+
+                        // 判断鼠标在左半区还是右半区
+                        const rect = a.getBoundingClientRect();
+                        const mouseX = e.clientX;
+                        
+                        if (mouseX < rect.left + rect.width / 2) {
+                            a.classList.add('insert-left');
+                        } else {
+                            a.classList.add('insert-right');
+                        }
+                    });
+
+                    a.addEventListener('dragleave', () => {
+                        a.classList.remove('insert-left', 'insert-right');
+                    });
+
+                    a.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        
+                        // 记录指示线状态
+                        const isInsertLeft = a.classList.contains('insert-left');
+                        document.querySelectorAll('.nav-item').forEach(el => {
+                            el.classList.remove('insert-left', 'insert-right');
+                        });
+
+                        const targetIndex = originalIndex;
+                        if (draggedItemIndex === null || draggedItemIndex === targetIndex) return;
+
+                        // 取出被拖拽的元素
+                        const draggedItem = navData.splice(draggedItemIndex, 1)[0];
+                        
+                        // 计算插入位置
+                        let insertIndex = targetIndex;
+                        if (draggedItemIndex < targetIndex) {
+                            insertIndex = isInsertLeft ? targetIndex - 1 : targetIndex;
+                        } else {
+                            insertIndex = isInsertLeft ? targetIndex : targetIndex + 1;
+                        }
+                        
+                        if (insertIndex < 0) insertIndex = 0;
+                        if (insertIndex > navData.length) insertIndex = navData.length;
+
+                        navData.splice(insertIndex, 0, draggedItem);
+                        saveData();
+                        renderGrid();
+                    });
+                } else {
+                    a.setAttribute('draggable', 'false');
                 }
 
                 navGrid.appendChild(a);
-            });
-
-            // 2. 渲染未分组网址
-            const ungrouped = getUngroupedData();
-            ungrouped.forEach((item) => {
-                const originalIndex = navData.findIndex(d => d.url === item.url && d.name === item.name);
-                const a = createSiteElement(item, originalIndex);
-                navGrid.appendChild(a);
-            });
-        }
-
-        // 创建单个网址元素
-        function createSiteElement(item, originalIndex) {
-            const a = document.createElement('a');
-            a.className = 'nav-item';
-            a.href = item.url;
-            a.dataset.index = originalIndex;
-            a.dataset.type = 'site';
-
-            let finalIconUrl = item.iconBase64 || item.iconUrl || getFaviconUrl(item.url);
-            const firstLetter = item.name.charAt(0).toUpperCase();
-
-            a.innerHTML = `
-                <div class="icon-box">
-                    ${finalIconUrl ? `<img src="${finalIconUrl}" alt="${item.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : ''}
-                    <div class="default-icon" style="display: ${finalIconUrl ? 'none' : 'flex'}">${firstLetter}</div>
-                </div>
-                <div class="nav-name" title="${item.name}">${item.name}</div>
-            `;
-
-            a.addEventListener('click', () => {
-                item.count = (item.count || 0) + 1;
-                saveData();
-            });
-
-            a.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                contextTargetType = 'site';
-                editingIndex = originalIndex;
-                showContextMenu(e.pageX, e.pageY);
-            });
-
-            if (isMobile) {
-                attachLongPress(a, () => {
-                    contextTargetType = 'site';
-                    editingIndex = originalIndex;
-                });
-            }
-
-            // 桌面拖拽
-            if (currentSettings.sortType === 'manual' && !isMobile) {
-                a.setAttribute('draggable', 'true');
-                
-                a.addEventListener('dragstart', (e) => {
-                    draggedItemIndex = originalIndex;
-                    a.classList.add('dragging');
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('text/plain', originalIndex);
-                    document.querySelectorAll('.nav-item').forEach(el => {
-                        el.classList.remove('insert-left', 'insert-right');
-                    });
-                });
-
-                a.addEventListener('dragend', () => {
-                    a.classList.remove('dragging');
-                    draggedItemIndex = null;
-                    document.querySelectorAll('.nav-item').forEach(el => {
-                        el.classList.remove('insert-left', 'insert-right');
-                    });
-                });
-
-                a.addEventListener('dragover', (e) => {
-                    e.preventDefault(); 
-                    e.dataTransfer.dropEffect = 'move';
-                    document.querySelectorAll('.nav-item').forEach(el => {
-                        el.classList.remove('insert-left', 'insert-right');
-                    });
-                    const rect = a.getBoundingClientRect();
-                    const mouseX = e.clientX;
-                    if (mouseX < rect.left + rect.width / 2) {
-                        a.classList.add('insert-left');
-                    } else {
-                        a.classList.add('insert-right');
-                    }
-                });
-
-                a.addEventListener('dragleave', () => {
-                    a.classList.remove('insert-left', 'insert-right');
-                });
-
-                a.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    const isInsertLeft = a.classList.contains('insert-left');
-                    document.querySelectorAll('.nav-item').forEach(el => {
-                        el.classList.remove('insert-left', 'insert-right');
-                    });
-
-                    const targetIndex = originalIndex;
-                    if (draggedItemIndex === null || draggedItemIndex === targetIndex) return;
-
-                    const draggedItem = navData.splice(draggedItemIndex, 1)[0];
-                    let insertIndex = targetIndex;
-                    if (draggedItemIndex < targetIndex) {
-                        insertIndex = isInsertLeft ? targetIndex - 1 : targetIndex;
-                    } else {
-                        insertIndex = isInsertLeft ? targetIndex : targetIndex + 1;
-                    }
-                    if (insertIndex < 0) insertIndex = 0;
-                    if (insertIndex > navData.length) insertIndex = navData.length;
-
-                    navData.splice(insertIndex, 0, draggedItem);
-                    saveData();
-                    renderGrid();
-                });
-            } else {
-                a.setAttribute('draggable', 'false');
-            }
-
-            return a;
-        }
-
-        // 长按辅助函数
-        function attachLongPress(el, setTargetFn) {
-            let timer = null;
-            let triggered = false;
-
-            el.addEventListener('touchstart', (e) => {
-                triggered = false;
-                const touch = e.touches[0];
-                const x = touch.clientX;
-                const y = touch.clientY;
-
-                timer = setTimeout(() => {
-                    triggered = true;
-                    e.preventDefault();
-                    setTargetFn();
-                    showContextMenu(x, y);
-                    setTimeout(() => {
-                        document.addEventListener('touchstart', closeContextMenuTouch, { once: true });
-                    }, 50);
-                }, 600);
-            }, { passive: true });
-
-            el.addEventListener('touchend', (e) => {
-                clearTimeout(timer);
-                if (triggered) e.preventDefault();
-            });
-
-            el.addEventListener('touchmove', () => {
-                clearTimeout(timer);
             });
         }
 
         // --- 右键菜单 ---
-        function showContextMenu(x, y) {
-            contextMenu.style.left = `${x}px`;
-            contextMenu.style.top = `${y}px`;
+        function handleContextMenu(e, index) {
+            e.preventDefault();
+            editingIndex = index;
+            contextMenu.style.left = `${e.pageX}px`;
+            contextMenu.style.top = `${e.pageY}px`;
             contextMenu.style.display = 'block';
             document.addEventListener('click', closeContextMenu);
         }
@@ -1306,69 +875,16 @@
             document.removeEventListener('click', closeContextMenu);
         }
 
-        function closeContextMenuTouch(e) {
-            if (contextMenu.contains(e.target)) return;
-            contextMenu.style.display = 'none';
-        }
-
-        // --- 分组查看弹窗 ---
-        function openGroupView(groupId) {
-            const group = groupData.find(g => g.id === groupId);
-            if (!group) return;
-            
-            currentViewGroupId = groupId;
-            groupViewTitle.textContent = group.name;
-            
-            const sites = navData.filter(item => item.group === groupId);
-            
-            groupViewGrid.innerHTML = '';
-            if (sites.length === 0) {
-                groupViewEmpty.style.display = 'block';
-            } else {
-                groupViewEmpty.style.display = 'none';
-                sites.forEach((item) => {
-                    const originalIndex = navData.findIndex(d => d.url === item.url && d.name === item.name);
-                    const a = createSiteElement(item, originalIndex);
-                    groupViewGrid.appendChild(a);
-                });
-            }
-            
-            groupViewModal.style.display = 'flex';
-            setTimeout(() => groupViewModal.classList.add('show'), 10);
-        }
-
-        groupViewClose.addEventListener('click', () => {
-            groupViewModal.classList.remove('show');
-            setTimeout(() => { groupViewModal.style.display = 'none'; }, 300);
-        });
-
-        groupViewModal.addEventListener('click', (e) => {
-            if (e.target === groupViewModal) {
-                groupViewModal.classList.remove('show');
-                setTimeout(() => { groupViewModal.style.display = 'none'; }, 300);
-            }
-        });
-
-        // --- 网址编辑弹窗 ---
+        // --- 编辑弹窗 ---
         function openEditModal(index) {
             editingIndex = index;
             tempIconBase64 = ''; 
             fileUpload.value = ''; 
 
-            // 更新分组下拉
-            inputGroup.innerHTML = '<option value="">-- 不分组 --</option>';
-            groupData.forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g.id;
-                opt.textContent = g.name;
-                inputGroup.appendChild(opt);
-            });
-
             if (index !== -1) {
                 modalTitle.textContent = '编辑网址';
                 inputName.value = navData[index].name;
                 inputUrl.value = navData[index].url;
-                inputGroup.value = navData[index].group || '';
                 inputIconUrl.value = navData[index].iconUrl || '';
                 
                 if (navData[index].iconBase64) {
@@ -1383,7 +899,6 @@
                 modalTitle.textContent = '添加新网址';
                 inputName.value = '';
                 inputUrl.value = '';
-                inputGroup.value = '';
                 inputIconUrl.value = '';
                 updatePreview('');
             }
@@ -1391,7 +906,7 @@
             editModal.style.display = 'flex';
             setTimeout(() => {
                 editModal.classList.add('show');
-                if (!isMobile) inputName.focus();
+                inputName.focus();
             }, 10);
         }
 
@@ -1440,7 +955,6 @@
             const name = inputName.value.trim();
             let url = inputUrl.value.trim();
             const iconUrl = inputIconUrl.value.trim();
-            const group = inputGroup.value || null;
 
             if (!name || !url) {
                 alert("网站名称和链接不能为空！");
@@ -1450,10 +964,10 @@
             if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
 
             if (editingIndex === -1) {
-                navData.push({ name, url, iconUrl, iconBase64: tempIconBase64, count: 0, group });
+                navData.push({ name, url, iconUrl, iconBase64: tempIconBase64, count: 0 });
             } else {
                 const oldCount = navData[editingIndex].count || 0;
-                navData[editingIndex] = { name, url, iconUrl, iconBase64: tempIconBase64, count: oldCount, group };
+                navData[editingIndex] = { name, url, iconUrl, iconBase64: tempIconBase64, count: oldCount };
             }
 
             saveData();
@@ -1465,109 +979,6 @@
         editModal.addEventListener('click', (e) => { if (e.target === editModal) closeEditModal(); });
 
         btnAdd.addEventListener('click', () => openEditModal(-1));
-
-        // --- 分组编辑弹窗 ---
-        function openGroupEditModal(index) {
-            editingGroupIndex = index;
-            tempGroupIconBase64 = '';
-            groupFileUpload.value = '';
-
-            if (index !== -1) {
-                groupModalTitle.textContent = '编辑分组';
-                groupInputName.value = groupData[index].name;
-                groupInputIconUrl.value = groupData[index].iconUrl || '';
-                
-                if (groupData[index].iconBase64) {
-                    tempGroupIconBase64 = groupData[index].iconBase64;
-                    updateGroupPreview(tempGroupIconBase64);
-                } else if (groupData[index].iconUrl) {
-                    updateGroupPreview(groupData[index].iconUrl);
-                } else {
-                    updateGroupPreview('');
-                }
-            } else {
-                groupModalTitle.textContent = '新建分组';
-                groupInputName.value = '';
-                groupInputIconUrl.value = '';
-                updateGroupPreview('');
-            }
-
-            groupModal.style.display = 'flex';
-            setTimeout(() => {
-                groupModal.classList.add('show');
-                if (!isMobile) groupInputName.focus();
-            }, 10);
-        }
-
-        function closeGroupModal() {
-            groupModal.classList.remove('show');
-            setTimeout(() => { groupModal.style.display = 'none'; }, 300);
-        }
-
-        function updateGroupPreview(src) {
-            if (src) {
-                groupIconPreview.innerHTML = `<img src="${src}" onerror="this.style.display='none';">`;
-            } else {
-                groupIconPreview.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:var(--input-border);"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>`;
-            }
-        }
-
-        groupInputIconUrl.addEventListener('input', (e) => {
-            if (e.target.value.trim() !== '') {
-                tempGroupIconBase64 = '';
-                updateGroupPreview(e.target.value.trim());
-            } else {
-                if (!tempGroupIconBase64) updateGroupPreview('');
-            }
-        });
-
-        groupFileUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    tempGroupIconBase64 = event.target.result;
-                    groupInputIconUrl.value = '';
-                    updateGroupPreview(tempGroupIconBase64);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        groupBtnConfirm.addEventListener('click', () => {
-            const name = groupInputName.value.trim();
-            const iconUrl = groupInputIconUrl.value.trim();
-
-            if (!name) {
-                alert("分组名称不能为空！");
-                return;
-            }
-
-            if (editingGroupIndex === -1) {
-                groupData.push({
-                    id: 'g_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-                    name,
-                    iconUrl,
-                    iconBase64: tempGroupIconBase64
-                });
-            } else {
-                groupData[editingGroupIndex] = {
-                    ...groupData[editingGroupIndex],
-                    name,
-                    iconUrl,
-                    iconBase64: tempGroupIconBase64
-                };
-            }
-
-            saveData();
-            renderGrid();
-            closeGroupModal();
-        });
-
-        groupBtnCancel.addEventListener('click', closeGroupModal);
-        groupModal.addEventListener('click', (e) => { if (e.target === groupModal) closeGroupModal(); });
-
-        btnAddGroup.addEventListener('click', () => openGroupEditModal(-1));
 
         // --- 设置面板 ---
         settingToggle.addEventListener('click', () => {
@@ -1602,7 +1013,6 @@
         btnExport.addEventListener('click', () => {
             const backupData = {
                 navData: navData,
-                groupData: groupData,
                 settings: currentSettings
             };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
@@ -1626,11 +1036,7 @@
                     if (parsedData.navData && Array.isArray(parsedData.navData)) {
                         if (confirm("导入将覆盖当前所有数据，确定继续吗？")) {
                             navData = parsedData.navData;
-                            navData.forEach(item => { 
-                                if (typeof item.count === 'undefined') item.count = 0; 
-                                if (typeof item.group === 'undefined') item.group = null;
-                            });
-                            groupData = parsedData.groupData || [];
+                            navData.forEach(item => { if (typeof item.count === 'undefined') item.count = 0; });
                             
                             if (parsedData.settings) {
                                 currentSettings = { ...defaultSettings, ...parsedData.settings };
@@ -1651,9 +1057,8 @@
         });
 
         btnClear.addEventListener('click', () => {
-            if (confirm("确定要清空所有网址和分组数据吗？")) {
+            if (confirm("确定要清空所有网址数据吗？")) {
                 navData = [];
-                groupData = [];
                 saveData();
                 renderGrid();
             }
@@ -1662,51 +1067,21 @@
         // --- 右键菜单事件 ---
         topMenu.addEventListener('click', () => {
             closeContextMenu();
-            if (contextTargetType === 'site' && editingIndex !== -1) {
+            if (editingIndex !== -1) {
                 const topItem = navData.splice(editingIndex, 1)[0];
                 navData.unshift(topItem);
                 saveData();
                 renderGrid();
-            } else if (contextTargetType === 'group' && editingGroupIndex !== -1) {
-                const topGroup = groupData.splice(editingGroupIndex, 1)[0];
-                groupData.unshift(topGroup);
-                saveData();
-                renderGrid();
             }
         });
 
-        editMenu.addEventListener('click', () => { 
-            closeContextMenu(); 
-            if (contextTargetType === 'site') {
-                openEditModal(editingIndex); 
-            } else {
-                openGroupEditModal(editingGroupIndex);
-            }
-        });
-
+        editMenu.addEventListener('click', () => { closeContextMenu(); openEditModal(editingIndex); });
         deleteMenu.addEventListener('click', () => {
             closeContextMenu();
-            if (contextTargetType === 'site') {
-                if (editingIndex !== -1 && confirm(`确定要删除 "${navData[editingIndex].name}" 吗？`)) {
-                    navData.splice(editingIndex, 1);
-                    saveData();
-                    renderGrid();
-                }
-            } else if (contextTargetType === 'group') {
-                if (editingGroupIndex !== -1) {
-                    const g = groupData[editingGroupIndex];
-                    const count = navData.filter(s => s.group === g.id).length;
-                    const msg = count > 0 
-                        ? `分组 "${g.name}" 下有 ${count} 个网址，删除后这些网址会变为“未分组”。确定删除吗？`
-                        : `确定要删除分组 "${g.name}" 吗？`;
-                    if (confirm(msg)) {
-                        // 将该分组下的网址设为未分组
-                        navData.forEach(s => { if (s.group === g.id) s.group = null; });
-                        groupData.splice(editingGroupIndex, 1);
-                        saveData();
-                        renderGrid();
-                    }
-                }
+            if (editingIndex !== -1 && confirm(`确定要删除 "${navData[editingIndex].name}" 吗？`)) {
+                navData.splice(editingIndex, 1);
+                saveData();
+                renderGrid();
             }
         });
 
