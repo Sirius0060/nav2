@@ -61,7 +61,6 @@
         }
 
         body {
-            /* 字体优先使用微软雅黑，其次 PingFang（Mac 中文），再退到系统默认 */
             font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
             background-image: var(--bg-image);
@@ -79,7 +78,6 @@
             position: relative;
         }
 
-        /* 网格容器：水平垂直居中 */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(var(--grid-cols), 1fr);
@@ -94,7 +92,6 @@
             transition: gap 0.3s;
         }
 
-        /* 单个图标项 */
         .nav-item {
             display: flex;
             flex-direction: column;
@@ -115,7 +112,6 @@
             transform: scale(0.9);
         }
 
-        /* 拖拽插入指示线 */
         .nav-item.insert-left::before,
         .nav-item.insert-right::after {
             content: '';
@@ -145,8 +141,9 @@
             justify-content: center;
             align-items: center;
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s;
-            overflow: hidden;
+            overflow: visible;
             border-radius: 20%;
+            position: relative;
         }
 
         .nav-item:hover .icon-box {
@@ -178,7 +175,28 @@
             pointer-events: none;
         }
 
-        /* 文字基础样式 */
+        /* 快捷键角标 */
+        .hotkey-badge {
+            position: absolute;
+            right: -6px;
+            bottom: -6px;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 5px;
+            background: #4facfe;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 2;
+        }
+
         .nav-name {
             margin-top: 12px;
             font-size: 14px;
@@ -192,7 +210,6 @@
             transition: all 0.3s;
         }
 
-        /* 有壁纸时：文字加半透明白色胶囊底 + 深色描边，保证清晰可读 */
         body.has-wallpaper .nav-name {
             background: rgba(255, 255, 255, 0.75);
             color: #222;
@@ -205,14 +222,12 @@
             max-width: calc(var(--icon-size) + 30px);
         }
 
-        /* 深色模式 + 有壁纸时：黑色胶囊 */
         body.dark-mode.has-wallpaper .nav-name {
             background: rgba(0, 0, 0, 0.6);
             color: #fff;
             box-shadow: 0 1px 4px rgba(0,0,0,0.3);
         }
 
-        /* --- 右键菜单 --- */
         .context-menu {
             position: absolute;
             background: var(--modal-bg);
@@ -242,7 +257,6 @@
             color: var(--danger-color);
         }
 
-        /* --- 右下角悬浮操作区 --- */
         .floating-area {
             position: fixed;
             bottom: 40px;
@@ -303,7 +317,6 @@
             fill: #fff;
         }
 
-        /* --- 自定义模态框 --- */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -373,6 +386,36 @@
 
         .form-group input:focus, .form-group select:focus {
             border-color: var(--input-focus);
+        }
+
+        /* 快捷键录入框 */
+        .hotkey-input {
+            text-align: center;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .hotkey-input.recording {
+            border-color: var(--input-focus) !important;
+            background: rgba(79, 172, 254, 0.1);
+        }
+
+        .hotkey-hint {
+            font-size: 12px;
+            opacity: 0.6;
+            margin-top: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hotkey-clear {
+            color: var(--danger-color);
+            cursor: pointer;
+            font-size: 12px;
         }
 
         .icon-upload-row {
@@ -453,7 +496,6 @@
             background: var(--btn-primary-hover);
         }
 
-        /* 设置面板专属样式 */
         .setting-row {
             display: flex;
             justify-content: space-between;
@@ -475,7 +517,6 @@
             opacity: 0.7;
         }
 
-        /* 壁纸上传区域 */
         .wallpaper-row {
             display: flex;
             align-items: center;
@@ -520,9 +561,6 @@
             background: rgba(255, 77, 79, 0.1);
         }
 
-        /* ======================================================
-           移动端适配
-           ====================================================== */
         @media (max-width: 768px) {
             body {
                 padding: 20px 15px;
@@ -639,6 +677,15 @@
             </div>
 
             <div class="form-group">
+                <label>快捷键 (可选)</label>
+                <input type="text" id="inputHotkey" class="hotkey-input" placeholder="按一下键盘" readonly>
+                <div class="hotkey-hint">
+                    <span>支持 a-z 和 0-9，点击输入框后按键</span>
+                    <span class="hotkey-clear" id="btnClearHotkey">清除</span>
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label>图标设置 (可选)</label>
                 <div class="icon-upload-row">
                     <div class="icon-preview" id="iconPreview">
@@ -722,12 +769,12 @@
 
     <script>
         const defaultData = [
-            { name: '百度', url: 'https://www.baidu.com', count: 0 },
-            { name: '淘宝', url: 'https://www.taobao.com', count: 0 },
-            { name: '知乎', url: 'https://www.zhihu.com', count: 0 },
-            { name: 'B站', url: 'https://www.bilibili.com', count: 0 },
-            { name: 'GitHub', url: 'https://github.com', count: 0 },
-            { name: '微博', url: 'https://weibo.com', count: 0 }
+            { name: '百度', url: 'https://www.baidu.com', count: 0, hotkey: null },
+            { name: '淘宝', url: 'https://www.taobao.com', count: 0, hotkey: null },
+            { name: '知乎', url: 'https://www.zhihu.com', count: 0, hotkey: null },
+            { name: 'B站', url: 'https://www.bilibili.com', count: 0, hotkey: null },
+            { name: 'GitHub', url: 'https://github.com', count: 0, hotkey: null },
+            { name: '微博', url: 'https://weibo.com', count: 0, hotkey: null }
         ];
 
         const defaultSettings = {
@@ -744,6 +791,7 @@
         let editingIndex = -1; 
         let tempIconBase64 = ''; 
         let tempWallpaperBase64 = '';
+        let tempHotkey = null;
         let draggedItemIndex = null;
 
         const navGrid = document.getElementById('navGrid');
@@ -759,6 +807,8 @@
         const modalTitle = document.getElementById('modalTitle');
         const inputName = document.getElementById('inputName');
         const inputUrl = document.getElementById('inputUrl');
+        const inputHotkey = document.getElementById('inputHotkey');
+        const btnClearHotkey = document.getElementById('btnClearHotkey');
         const inputIconUrl = document.getElementById('inputIconUrl');
         const fileUpload = document.getElementById('fileUpload');
         const iconPreview = document.getElementById('iconPreview');
@@ -786,7 +836,10 @@
         function init() {
             const storedData = localStorage.getItem('myNavData');
             navData = storedData ? JSON.parse(storedData) : [...defaultData];
-            navData.forEach(item => { if (typeof item.count === 'undefined') item.count = 0; });
+            navData.forEach(item => { 
+                if (typeof item.count === 'undefined') item.count = 0; 
+                if (typeof item.hotkey === 'undefined') item.hotkey = null;
+            });
 
             const storedSettings = localStorage.getItem('myNavSettings');
             currentSettings = storedSettings ? { ...defaultSettings, ...JSON.parse(storedSettings) } : { ...defaultSettings };
@@ -872,12 +925,15 @@
                 let finalIconUrl = item.iconBase64 || item.iconUrl || getFaviconUrl(item.url);
                 const firstLetter = item.name.charAt(0).toUpperCase();
 
+                const hotkeyHtml = item.hotkey ? `<div class="hotkey-badge">${item.hotkey}</div>` : '';
+
                 a.innerHTML = `
                     <div class="icon-box">
                         ${finalIconUrl ? `<img src="${finalIconUrl}" alt="${item.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : ''}
                         <div class="default-icon" style="display: ${finalIconUrl ? 'none' : 'flex'}">${firstLetter}</div>
+                        ${hotkeyHtml}
                     </div>
-                    <div class="nav-name" title="${item.name}">${item.name}</div>
+                    <div class="nav-name" title="${item.name}${item.hotkey ? ' [快捷键: ' + item.hotkey.toUpperCase() + ']' : ''}">${item.name}</div>
                 `;
 
                 a.addEventListener('click', () => {
@@ -982,6 +1038,7 @@
         function openEditModal(index) {
             editingIndex = index;
             tempIconBase64 = ''; 
+            tempHotkey = null;
             fileUpload.value = ''; 
 
             if (index !== -1) {
@@ -989,6 +1046,8 @@
                 inputName.value = navData[index].name;
                 inputUrl.value = navData[index].url;
                 inputIconUrl.value = navData[index].iconUrl || '';
+                tempHotkey = navData[index].hotkey || null;
+                inputHotkey.value = tempHotkey ? tempHotkey.toUpperCase() : '';
                 
                 if (navData[index].iconBase64) {
                     tempIconBase64 = navData[index].iconBase64;
@@ -1003,13 +1062,14 @@
                 inputName.value = '';
                 inputUrl.value = '';
                 inputIconUrl.value = '';
+                inputHotkey.value = '';
                 updatePreview('');
             }
 
             editModal.style.display = 'flex';
             setTimeout(() => {
                 editModal.classList.add('show');
-                inputName.focus();
+                if (!isMobile) inputName.focus();
             }, 10);
         }
 
@@ -1025,6 +1085,75 @@
                 iconPreview.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:var(--input-border);"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>`;
             }
         }
+
+        /* ============ 快捷键录入 ============ */
+        inputHotkey.addEventListener('click', () => {
+            inputHotkey.value = '';
+            inputHotkey.classList.add('recording');
+            inputHotkey.placeholder = '按下键盘上的键...';
+            inputHotkey.focus();
+        });
+
+        inputHotkey.addEventListener('blur', () => {
+            inputHotkey.classList.remove('recording');
+            inputHotkey.placeholder = '按一下键盘';
+        });
+
+        inputHotkey.addEventListener('keydown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const key = e.key.toLowerCase();
+            // 只允许 a-z 和 0-9
+            if (!/^[a-z0-9]$/.test(key)) {
+                return;
+            }
+
+            // 检查是否已被其他网址占用
+            const occupiedIndex = navData.findIndex((item, i) => item.hotkey === key && i !== editingIndex);
+            if (occupiedIndex !== -1) {
+                const occupied = navData[occupiedIndex];
+                if (!confirm(`键 "${key.toUpperCase()}" 已被 "${occupied.name}" 占用，是否覆盖？`)) {
+                    return;
+                }
+                // 覆盖：把原绑定者的 hotkey 清空
+                navData[occupiedIndex].hotkey = null;
+                saveData();
+            }
+
+            tempHotkey = key;
+            inputHotkey.value = key.toUpperCase();
+            inputHotkey.classList.remove('recording');
+            inputHotkey.blur();
+        });
+
+        btnClearHotkey.addEventListener('click', (e) => {
+            e.stopPropagation();
+            tempHotkey = null;
+            inputHotkey.value = '';
+        });
+
+        /* ============ 全局快捷键监听 ============ */
+        document.addEventListener('keydown', (e) => {
+            // 输入框聚焦时忽略
+            const tag = document.activeElement.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+            // 弹窗打开时忽略
+            if (editModal.classList.contains('show') || settingModal.classList.contains('show')) return;
+            // 组合键忽略
+            if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
+
+            const key = e.key.toLowerCase();
+            if (!/^[a-z0-9]$/.test(key)) return;
+
+            const match = navData.find(item => item.hotkey === key);
+            if (match) {
+                e.preventDefault();
+                match.count = (match.count || 0) + 1;
+                saveData();
+                window.location.href = match.url;
+            }
+        });
 
         inputIconUrl.addEventListener('input', (e) => {
             if (e.target.value.trim() !== '') {
@@ -1067,10 +1196,10 @@
             if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
 
             if (editingIndex === -1) {
-                navData.push({ name, url, iconUrl, iconBase64: tempIconBase64, count: 0 });
+                navData.push({ name, url, iconUrl, iconBase64: tempIconBase64, count: 0, hotkey: tempHotkey });
             } else {
                 const oldCount = navData[editingIndex].count || 0;
-                navData[editingIndex] = { name, url, iconUrl, iconBase64: tempIconBase64, count: oldCount };
+                navData[editingIndex] = { name, url, iconUrl, iconBase64: tempIconBase64, count: oldCount, hotkey: tempHotkey };
             }
 
             saveData();
@@ -1092,6 +1221,12 @@
             settingModal.classList.remove('show');
             setTimeout(() => { settingModal.style.display = 'none'; }, 300);
         });
+        settingModal.addEventListener('click', (e) => {
+    if (e.target === settingModal) {
+        settingModal.classList.remove('show');
+        setTimeout(() => { settingModal.style.display = 'none'; }, 300);
+    }
+});
 
         inputWallpaperUrl.addEventListener('change', (e) => {
             const url = e.target.value.trim();
@@ -1174,7 +1309,10 @@
                     if (parsedData.navData && Array.isArray(parsedData.navData)) {
                         if (confirm("导入将覆盖当前所有数据，确定继续吗？")) {
                             navData = parsedData.navData;
-                            navData.forEach(item => { if (typeof item.count === 'undefined') item.count = 0; });
+                            navData.forEach(item => { 
+                                if (typeof item.count === 'undefined') item.count = 0; 
+                                if (typeof item.hotkey === 'undefined') item.hotkey = null;
+                            });
                             
                             if (parsedData.settings) {
                                 currentSettings = { ...defaultSettings, ...parsedData.settings };
@@ -1221,6 +1359,9 @@
                 renderGrid();
             }
         });
+
+        // 移动端检测（用于输入框自动聚焦判断）
+        const isMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent) || ('ontouchstart' in window && window.innerWidth <= 1024);
 
         init();
     </script>
